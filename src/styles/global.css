@@ -1,0 +1,215 @@
+/* aibox-site 设计系统 —— VI 色板（唯一权威：logo 派生绿）
+   色板 token（--aibox-*，见下）
+   反模板铁律：禁渐变横幅 / 三等宽卡片阵列 / 玻璃拟态 / 12px+ 大圆角堆叠；
+   超大字承担层级；情绪 =「可靠的工具箱」。 */
+
+@import 'tailwindcss';
+
+@theme {
+  /* —— 色板 token（Tailwind 工具类：bg-aibox-green 等）—— */
+  --color-aibox-bg: #0a0a0a;       /* 纯黑底（logo 底色） */
+  --color-aibox-raised: #14161a;   /* 卡片/浮层 */
+  --color-aibox-line: #2a2e33;     /* 边框/分隔 */
+  --color-aibox-green: #b6fb50;    /* 主色（logo 采样）→ CTA/进度/成功/强调，单屏 ≤1 处大面积 */
+  --color-aibox-green-d: #8fcf2e;  /* 主色暗阶（hover/描边） */
+  --color-aibox-cream: #fbf6e2;    /* 次色（logo 字色）→ 标题/重要文字 */
+  --color-aibox-text1: #f2f4f7;    /* 主文字 */
+  --color-aibox-text2: #9ba3af;    /* 次级文字 */
+  --color-aibox-ok: #61ab83;       /* 成功/已满足 */
+  --color-aibox-danger: #e5484d;   /* 失败/阻断 */
+  --color-aibox-info: #49b3fc;     /* 链接/进行中 */
+
+  /* —— 字体 —— */
+  --font-display: 'Space Grotesk', 'Noto Sans SC', system-ui, sans-serif;
+  --font-sans: -apple-system, 'Segoe UI', 'Space Grotesk', 'Noto Sans SC', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-pixel: 'Handjet', 'Space Grotesk', monospace; /* 仅品牌字标/AiBOX 智能盒子，正文禁用 */
+
+  /* —— 圆角（官网 4px 工业感；禁 12px+ 大圆角堆叠）—— */
+  --radius-box: 4px;
+}
+
+/* 原样 token 名 */
+:root {
+  --aibox-bg: #0a0a0a;
+  --aibox-raised: #14161a;
+  --aibox-line: #2a2e33;
+  --aibox-green: #b6fb50;
+  --aibox-green-d: #8fcf2e;
+  --aibox-cream: #fbf6e2;
+  --aibox-text-1: #f2f4f7;
+  --aibox-text-2: #9ba3af;
+  --aibox-ok: #61ab83;
+  --aibox-danger: #e5484d;
+  --aibox-info: #49b3fc;
+}
+
+html {
+  background: var(--aibox-bg);
+  color: var(--aibox-text-1);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-sans);
+  /* 中文行高 1.7 / 西文 1.55（8.4），正文 ≥16px */
+  line-height: 1.55;
+}
+
+html[lang='zh'] body {
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+::selection {
+  background: var(--aibox-green);
+  color: var(--aibox-bg);
+}
+
+/* —— 母题：像素圆角方块（logo 机器人脸衍生）—— */
+
+/* 分区像素分隔线：一排小方块，间隔点亮 */
+.pixel-rule {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.pixel-rule > i {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--aibox-line);
+}
+.pixel-rule > i.on {
+  background: var(--aibox-green);
+}
+
+/* 状态方块点（仪表盘/时间线用，方块非圆点） */
+.sq {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+/* 列表 bullet：像素方块 */
+ul.pixel-list {
+  list-style: none;
+  padding: 0;
+}
+ul.pixel-list > li {
+  position: relative;
+  padding-left: 20px;
+}
+ul.pixel-list > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--aibox-green);
+}
+
+/* 超大字层级（R2） */
+.hero-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(44px, 8.5vw, 96px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--aibox-cream);
+}
+html[lang='zh'] .hero-title {
+  font-family: 'Noto Sans SC', var(--font-display);
+  font-weight: 500;
+}
+
+.h-section {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.15;
+  color: var(--aibox-cream);
+}
+html[lang='zh'] .h-section {
+  font-family: 'Noto Sans SC', var(--font-display);
+  font-weight: 500;
+}
+
+/* 品牌字标：像素风字体（Handjet），仅此一处 */
+.brand-pixel {
+  font-family: var(--font-pixel);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+/* CTA：绿底黑字（黑绿对比 = logo 同款关系） */
+.btn-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--aibox-green);
+  color: var(--aibox-bg);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 20px;
+  padding: 14px 24px;
+  border-radius: 4px;
+  border: 1px solid var(--aibox-green);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.btn-cta:hover {
+  background: var(--aibox-green-d);
+  border-color: var(--aibox-green-d);
+}
+.btn-cta .mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--aibox-text1);
+  font-size: 16px;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--aibox-line);
+  border-radius: 0;
+}
+.btn-ghost:hover {
+  color: var(--aibox-green);
+  border-color: var(--aibox-green);
+}
+
+/* 徽章（4px 圆角，禁大圆角药丸） */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1;
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--aibox-line);
+  color: var(--aibox-text2);
+  background: var(--aibox-raised);
+}
+.badge-ok {
+  color: var(--aibox-ok);
+  border-color: color-mix(in srgb, var(--aibox-ok) 45%, transparent);
+}
+.badge-info {
+  color: var(--aibox-info);
+  border-color: color-mix(in srgb, var(--aibox-info) 45%, transparent);
+}
+.badge-green {
+  color: var(--aibox-green);
+  border-color: color-mix(in srgb, var(--aibox-green) 45%, transparent);
+}

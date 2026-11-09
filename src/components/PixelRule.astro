@@ -1,0 +1,12 @@
+---
+// 分区像素分隔线（母题）：一排小方块，节奏点亮
+interface Props {
+  length?: number;
+  every?: number;
+}
+const { length = 24, every = 5 } = Astro.props;
+const cells = Array.from({ length }, (_, i) => i % every === 0);
+---
+<div class="pixel-rule" aria-hidden="true">
+  {cells.map((on) => <i class={on ? 'on' : ''}></i>)}
+</div>

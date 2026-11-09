@@ -1,0 +1,25 @@
+---
+// 根路径 `/` 语言分流
+// 首选：CF Pages Function `functions/index.ts` 读 Accept-Language 302 → /zh/ 或 /en/（en 兜底）。
+// 本页 = 纯静态零 JS 兜底（Function 未生效时），meta refresh 0s → /en/（默认语言），并保留手动切换链接。
+// 绑 aibox.im 后完善。
+const target = '/en/';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AiBOX.im — Installed until it works</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={target} />
+    <meta http-equiv="refresh" content={`0;url=${target}`} />
+    <link rel="alternate" hreflang="en" href="/en/" />
+    <link rel="alternate" hreflang="zh" href="/zh/" />
+    <link rel="alternate" hreflang="x-default" href="/en/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body style="background:#0A0A0A;color:#F2F4F7;font-family:system-ui,sans-serif;padding:24px">
+    <p>AiBOX.im · <a style="color:#B6FB50" href="/en/">English</a> · <a style="color:#B6FB50" href="/zh/">中文</a></p>
+  </body>
+</html>

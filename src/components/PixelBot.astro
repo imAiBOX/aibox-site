@@ -1,0 +1,94 @@
+---
+// 像素机器人方块占位（母题 = logo 机器人脸：圆角方块 + 方块眼/嘴）
+// 占位： 换 logo 正式矢量/AI 生图
+interface Props {
+  label: string;
+}
+const { label } = Astro.props;
+---
+<div class="bot" role="img" aria-label={label}>
+  <div class="bot-face">
+    <span class="eye left"></span>
+    <span class="eye right"></span>
+    <span class="mouth"></span>
+    <span class="ear left"></span>
+    <span class="ear right"></span>
+  </div>
+  <div class="bot-grid" aria-hidden="true">
+    <i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i>
+    <i></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i>
+  </div>
+</div>
+
+<style>
+  .bot {
+    position: relative;
+    width: min(320px, 70vw);
+    aspect-ratio: 1;
+    background: var(--aibox-raised);
+    border: 1px solid var(--aibox-line);
+    border-radius: 8px; /* 机器人脸=母题本体，非内容卡片 */
+    display: grid;
+    place-items: center;
+  }
+  .bot-face {
+    position: relative;
+    width: 62%;
+    aspect-ratio: 1;
+    background: var(--aibox-bg);
+    border: 2px solid var(--aibox-line);
+    border-radius: 8px;
+  }
+  .eye {
+    position: absolute;
+    top: 26%;
+    width: 16%;
+    aspect-ratio: 1;
+    background: var(--aibox-green);
+    border-radius: 2px;
+    animation: blink 3.6s steps(1) infinite;
+  }
+  .eye.left { left: 20%; }
+  .eye.right { right: 20%; }
+  .mouth {
+    position: absolute;
+    left: 26%;
+    right: 26%;
+    bottom: 22%;
+    height: 10%;
+    background: var(--aibox-green-d);
+    border-radius: 2px;
+  }
+  .ear {
+    position: absolute;
+    top: 44%;
+    width: 10%;
+    height: 16%;
+    background: var(--aibox-line);
+    border-radius: 2px;
+  }
+  .ear.left { left: -14%; }
+  .ear.right { right: -14%; }
+  .bot-grid {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    display: grid;
+    grid-template-columns: repeat(8, 6px);
+    gap: 3px;
+    opacity: 0.9;
+  }
+  .bot-grid i {
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+    background: var(--aibox-line);
+  }
+  .bot-grid i.on {
+    background: var(--aibox-green);
+  }
+  @keyframes blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    94%, 96% { transform: scaleY(0.15); }
+  }
+</style>

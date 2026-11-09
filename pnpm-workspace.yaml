@@ -1,0 +1,5 @@
+# pnpm 11 项目设置（package.json 的 pnpm 字段已不被读取，设置放这里）
+# 允许依赖执行安装脚本（esbuild 二进制校验 / sharp 图像原生库）
+allowBuilds:
+  esbuild: true
+  sharp: true
