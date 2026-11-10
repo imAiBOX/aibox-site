@@ -5,7 +5,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PixelBot from '../components/PixelBot.astro';
 import PixelRule from '../components/PixelRule.astro';
 import AppCard from '../components/AppCard.astro';
-import { fetchRegistry } from '../data/registry';
+import { fetchRegistry, LANDING_APP_IDS } from '../data/registry';
 import { t, type Lang } from '../i18n/dict';
 
 interface Props {
@@ -40,7 +40,7 @@ const description =
           <span>{d.hero.cta}</span>
           <span class="mono" aria-hidden="true">↓</span>
         </a>
-        <a class="btn-ghost" href="#apps">{d.hero.secondary} ↓</a>
+        <a class="btn-ghost" href={`/${lang}/apps/`}>{d.hero.secondary} ↓</a>
       </div>
       <p class="mt-4 font-mono text-xs text-aibox-text2">{d.hero.ctaHint}</p>
     </div>
@@ -94,8 +94,19 @@ const description =
       <p class="border border-dashed border-aibox-line p-6 text-aibox-text2" style="border-radius:4px">{d.catalog.empty}</p>
     ) : (
       <div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
-        {registry.apps.map((app) => <AppCard app={app} lang={lang} live={registry.live} />)}
+        {registry.apps.map((app) => (
+          <AppCard
+            app={app}
+            lang={lang}
+            live={registry.live}
+            href={LANDING_APP_IDS.includes(app.id) ? `/${lang}/apps/${app.id}/` : undefined}
+          />
+        ))}
       </div>
     )}
+
+    <p class="mt-8 mb-0">
+      <a href={`/${lang}/apps/`} class="text-aibox-info no-underline hover:text-aibox-green">{d.catalog.title} →</a>
+    </p>
   </section>
 </BaseLayout>

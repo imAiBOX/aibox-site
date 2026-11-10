@@ -1,0 +1,85 @@
+---
+// 应用目录页（en/zh 共用）：registry index 真数据，按 category 分组，卡片可进落地页
+// 数据源 = src/data/registry.ts（构建时拉，失败降级占位——I1 不变式）
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import AppCard from '../../components/AppCard.astro';
+import PixelRule from '../../components/PixelRule.astro';
+import { fetchRegistry, LANDING_APP_IDS, type RegistryApp } from '../../data/registry';
+import { pt, type Lang } from '../../i18n/pages';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const c = pt(lang).apps;
+
+const registry = await fetchRegistry();
+
+// 按 category 分组（保持 registry 顺序；无 category 归 other）。简单为上，不引筛选框架。
+const groups: { key: string; label: string; apps: RegistryApp[] }[] = [];
+for (const app of registry.apps) {
+  const key = app.category ?? 'other';
+  let g = groups.find((x) => x.key === key);
+  if (!g) {
+    g = { key, label: (c.categories as Record<string, string>)[key] ?? key, apps: [] };
+    groups.push(g);
+  }
+  g.apps.push(app);
+}
+
+const landingHref = (id: string) => (LANDING_APP_IDS.includes(id) ? `/${lang}/apps/${id}/` : undefined);
+
+const title = lang === 'zh' ? '应用目录 - AiBOX 能帮你装的 AI 工具 | aibox.im' : 'App catalog - AI tools AiBOX can install for you | aibox.im';
+const description =
+  lang === 'zh'
+    ? 'AiBOX 应用目录：难度、平台、状态一眼看清。数据来自 GitHub registry，每日校验。OpenClaw 等应用附中文安装教程。'
+    : 'The AiBOX app catalog: difficulty, platforms and status at a glance. Data comes from the GitHub registry, checked every day.';
+---
+
+<BaseLayout lang={lang} title={title} description={description}>
+  <PageHeader title={c.title} lede={c.lede} />
+
+  <section class="mx-auto max-w-6xl px-5 py-8">
+    <!-- 数据来源说明（人话）+ 实时/占位徽章 -->
+    <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+      <p class="m-0 max-w-2xl text-sm text-aibox-text2">{c.sourceNote}</p>
+      <span class={`badge ${registry.live ? 'badge-green' : 'badge-info'}`}>
+        <span class="sq" style={`background:${registry.live ? 'var(--aibox-green)' : 'var(--aibox-info)'}`}></span>
+        {registry.live ? c.sourceLive : c.sourceFallback}
+      </span>
+    </div>
+
+    {registry.apps.length === 0 ? (
+      <p class="border border-dashed border-aibox-line p-6 text-aibox-text2" style="border-radius:4px">{c.empty}</p>
+    ) : (
+      groups.map((g) => (
+        <div class="mb-12 last:mb-0">
+          <div class="mb-4 flex items-center gap-3">
+            <span class="sq bg-aibox-green" aria-hidden="true"></span>
+            <h2 class="m-0 font-[family-name:var(--font-display)] text-2xl font-semibold text-aibox-cream">{g.label}</h2>
+            <span class="badge">{g.apps.length}</span>
+          </div>
+          <div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+            {g.apps.map((app) => (
+              <AppCard app={app} lang={lang} live={registry.live} href={landingHref(app.id)} />
+            ))}
+          </div>
+        </div>
+      ))
+    )}
+
+    <div class="mt-4"><PixelRule length={24} every={4} /></div>
+
+    <div class="panel mt-8 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h2 class="m-0 mb-1 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{c.ctaH}</h2>
+        <p class="m-0 text-sm text-aibox-text2">{c.sourceNote}</p>
+      </div>
+      <a class="btn-cta no-underline" href={`/${lang}/download/`}>
+        <span>{c.cta}</span>
+        <span class="mono" aria-hidden="true">↓</span>
+      </a>
+    </div>
+  </section>
+</BaseLayout>

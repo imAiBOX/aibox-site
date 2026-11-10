@@ -1,0 +1,359 @@
+---
+// OpenClaw 落地页：
+// hero 超大字 + 🦞 记忆点 + 系统要求(registry runtime) + 安装三步 + CONFIG 六路径网页版
+// + FAQ(FAQPage JSON-LD) + 更新日志(registry) + 反馈入口
+// 结构化数据：SoftwareApplication + FAQPage（语法按 Google Rich RequirementsTest）
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PixelRule from '../../components/PixelRule.astro';
+import { fetchAppDetail, fetchRegistry } from '../../data/registry';
+import { pt, type Lang } from '../../i18n/pages';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const c = pt(lang).openclaw;
+
+const [detail, registry] = await Promise.all([fetchAppDetail('openclaw'), fetchRegistry()]);
+const app = registry.apps.find((a) => a.id === 'openclaw');
+const d = (lang === 'zh' ? detail.description?.['zh-CN'] : detail.description?.en) ?? c.hero.lede;
+
+// —— 徽章数据（与 /apps/ 卡片同一数据源：registry index）——
+const platformName: Record<string, string> = { win: 'Windows', windows: 'Windows', mac: 'macOS', macos: 'macOS', darwin: 'macOS', linux: 'Linux' };
+const platforms = (app?.platforms ?? ['windows', 'macos']).map((p) => platformName[p.toLowerCase()] ?? p);
+const level = app?.difficulty ?? 0;
+const statusRaw = (app?.status ?? 'preview').toLowerCase();
+const statusCls = ['stable', 'available', 'ready', 'installable'].includes(statusRaw) ? 'badge-ok' : ['preview', 'building'].includes(statusRaw) ? 'badge-info' : '';
+
+// —— SEO 标题模板——
+const title =
+  lang === 'zh' ? 'OpenClaw 安装教程 2026 - 不会命令行也能装好 | aibox.im' : 'OpenClaw install guide 2026 - set it up without the terminal | aibox.im';
+const description =
+  lang === 'zh'
+    ? 'OpenClaw 中文安装教程：三步装好，API key 配置六条路径（OpenRouter/Anthropic/OpenAI/Google/Claude 订阅/本地 Ollama），附系统要求、版本与常见问题。'
+    : 'OpenClaw install guide: three steps to install, API key setup in six paths (OpenRouter, Anthropic, OpenAI, Google AI Studio, Claude subscription, local Ollama), system requirements and FAQ.';
+
+// —— JSON-LD ①：SoftwareApplication（版本/类目/系统取自 registry app.json）——
+const softwareLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'OpenClaw',
+  description: d,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: platforms.join(', '),
+  softwareVersion: detail.version ?? undefined,
+  url: `https://aibox.im/${lang}/apps/openclaw/`,
+  inLanguage: [lang, 'zh', 'en'],
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', description: 'Free and open source' },
+};
+
+// —— JSON-LD ②：FAQPage（与页面可见 FAQ 同一份文案）——
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: c.faq.items.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+
+const node = detail.runtime?.node;
+const configPath = detail.configTarget ?? '~/.config/openclaw/openclaw.json5';
+const keyUrl = (id: string) => detail.providers?.find((p) => p.id === id)?.getKeyUrl;
+const feedbackUrl = 'https://github.com/imAiBOX/aibox-app/issues';
+---
+
+<BaseLayout lang={lang} title={title} description={description} jsonLd={[softwareLd, faqLd]}>
+  <!-- ============ HERO：超大应用名 + 🦞 品牌记忆点 + 徽章 ============ -->
+  <section class="mx-auto grid max-w-6xl items-center gap-10 px-5 pt-8 pb-14 md:grid-cols-[1.35fr_1fr] md:pt-14">
+    <div>
+      <div class="mb-6 flex items-center gap-3">
+        <span class="sq bg-aibox-green" aria-hidden="true"></span>
+        <a href={`/${lang}/apps/`} class="font-mono text-xs tracking-widest text-aibox-text2 no-underline hover:text-aibox-green">
+          {c.hero.eyebrow} / {app?.name ?? 'OpenClaw'}
+        </a>
+      </div>
+
+      <h1 class="m-0 text-aibox-cream" style="font-family:var(--font-display);font-weight:600;font-size:clamp(56px,11vw,120px);line-height:1.02;letter-spacing:-0.03em">
+        {app?.name ?? 'OpenClaw'}
+      </h1>
+
+      <p class="mt-6 max-w-xl text-lg text-aibox-text2">{c.hero.lede}</p>
+
+      <!-- 平台 / 难度 / 状态徽章（registry 同源） -->
+      <div class="mt-6 flex flex-wrap items-center gap-2">
+        {platforms.map((p) => <span class="badge">{p}</span>)}
+        <span class="badge" title={`${level}/5`}>
+          <span class="text-aibox-text2">{lang === 'zh' ? '难度' : 'Difficulty'}</span>
+          {
+            Array.from({ length: 5 }, (_, i) => (
+              <span style={`color:${i < level ? 'var(--aibox-green)' : 'var(--aibox-line)'}`}>{i < level ? '●' : '○'}</span>
+            ))
+          }
+        </span>
+        <span class={`badge ${statusCls}`}>{statusRaw}</span>
+        {detail.version && <span class="badge badge-info">v{detail.version}</span>}
+        {!detail.live && <span class="badge">{c.requirements.placeholder}</span>}
+      </div>
+
+      <div class="mt-8 flex flex-wrap items-center gap-6">
+        <a class="btn-cta no-underline" href={`/${lang}/download/`}>
+          <span>{c.hero.cta}</span>
+          <span class="mono" aria-hidden="true">↓</span>
+        </a>
+        <a class="btn-ghost" href="#requirements">{c.hero.jumpReq} ↓</a>
+        <a class="btn-ghost" href="#config">{c.hero.jumpConfig} ↓</a>
+      </div>
+    </div>
+
+    <!-- 🦞 品牌记忆点：自绘像素方块 + emoji 放大（尊重官方，不盗用素材） -->
+    <div class="justify-self-center md:justify-self-end">
+      <div
+        class="flex items-center justify-center border border-aibox-line bg-aibox-raised"
+        style="border-radius:4px;width:min(320px,70vw);aspect-ratio:1/1;box-shadow:8px 8px 0 var(--aibox-line)"
+      >
+        <span style="font-size:clamp(120px,26vw,200px);line-height:1" role="img" aria-label={c.hero.alt}>🦞</span>
+      </div>
+      <p class="mt-3 text-center font-mono text-xs text-aibox-text2">🦞 {app?.name ?? 'OpenClaw'} · {lang === 'zh' ? '官方品牌记忆点' : 'official brand mark'}</p>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-6xl px-5"><PixelRule length={32} every={4} /></div>
+
+  <!-- ============ 系统要求（registry runtime 真数据 + 人话 Node 政策） ============ -->
+  <section class="mx-auto max-w-6xl px-5 py-14" id="requirements">
+    <h2 class="h-section m-0 mb-8">{c.requirements.heading}</h2>
+
+    <div class="grid gap-6 md:grid-cols-2">
+      <div class="panel">
+        <h3 class="m-0 mb-3 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{c.requirements.nodeH}</h3>
+        {
+          node ? (
+            <dl class="m-0 grid gap-2 text-sm">
+              {node.recommended && (
+                <div class="flex items-center justify-between gap-3">
+                  <dt class="text-aibox-text2">{c.requirements.rec}</dt>
+                  <dd class="m-0 font-mono text-aibox-cream">Node {node.recommended}</dd>
+                </div>
+              )}
+              {node.supported && (
+                <div class="flex items-center justify-between gap-3">
+                  <dt class="text-aibox-text2">{c.requirements.ok}</dt>
+                  <dd class="m-0 font-mono text-aibox-cream">Node {node.supported}</dd>
+                </div>
+              )}
+              {node.disallowed && (
+                <div class="flex items-center justify-between gap-3">
+                  <dt class="text-aibox-text2">{c.requirements.bad}</dt>
+                  <dd class="m-0 font-mono text-aibox-danger">Node {node.disallowed.join(' / ')}</dd>
+                </div>
+              )}
+            </dl>
+          ) : (
+            <p class="m-0 text-aibox-text2">{c.requirements.placeholder}</p>
+          )
+        }
+        <p class="mt-4 mb-0 border-l-2 border-aibox-green pl-3 text-sm text-aibox-text1">{c.requirements.nodeNote}</p>
+      </div>
+
+      <div class="panel">
+        <h3 class="m-0 mb-3 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{c.requirements.osH}</h3>
+        <div class="flex flex-wrap gap-2">{platforms.map((p) => <span class="badge badge-green">{p}</span>)}</div>
+        <p class="mt-4 mb-0 text-sm text-aibox-text2">{c.hero.lede}</p>
+        {detail.updatedAt && (
+          <p class="mt-4 mb-0 font-mono text-xs text-aibox-text2">
+            {c.changelog.updatedH}: {detail.updatedAt.slice(0, 10)}
+          </p>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 安装三步（→ /download/） ============ -->
+  <section class="mx-auto max-w-6xl px-5 py-14">
+    <h2 class="h-section m-0 mb-10">{c.install.heading}</h2>
+    <ol class="relative m-0 list-none border-l border-aibox-line p-0 pl-10">
+      {
+        c.install.steps.map((step, i) => (
+          <li class="relative mb-10 last:mb-0">
+            <span
+              class="sq absolute -left-[calc(2.5rem+5px)] top-2"
+              style={`background:${i === c.install.steps.length - 1 ? 'var(--aibox-ok)' : 'var(--aibox-green)'}`}
+              aria-hidden="true"
+            />
+            <div class="mb-1 flex items-baseline gap-4">
+              <span class="font-mono text-sm text-aibox-text2">0{i + 1}</span>
+              <h3 class="m-0 font-[family-name:var(--font-display)] text-2xl font-semibold text-aibox-cream">{step.t}</h3>
+            </div>
+            <p class="m-0 max-w-2xl text-aibox-text2">{step.d}</p>
+            {step.cta && (
+              <a class="btn-ghost mt-2 inline-flex" href={`/${lang}/download/`}>
+                {step.cta} →
+              </a>
+            )}
+            {i === c.install.steps.length - 1 && <span class="badge badge-ok mt-2">✓ {c.install.done}</span>}
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <div class="mx-auto max-w-6xl px-5"><PixelRule length={32} every={4} /></div>
+
+  <!-- ============ CONFIG 六路径网页版教程（SEO 目标词：openclaw api key 配置） ============ -->
+  <section class="mx-auto max-w-6xl px-5 py-14" id="config">
+    <h2 class="h-section m-0 mb-4">{c.config.heading}</h2>
+    <p class="m-0 max-w-3xl text-aibox-text2">{c.config.lede}</p>
+
+    <!-- AiBOX 自动写入提示 + key 安全三条 + 写到哪 -->
+    <div class="mt-8 grid gap-6 md:grid-cols-2">
+      <div class="panel">
+        <p class="m-0 mb-4 border-l-2 border-aibox-green pl-3 text-aibox-text1">{c.config.autoNote}</p>
+        <h3 class="m-0 mb-3 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{c.config.safetyH}</h3>
+        <ul class="pixel-list m-0 p-0 text-sm text-aibox-text2">
+          {c.config.safety.map((s) => <li class="mb-2">{s}</li>)}
+        </ul>
+      </div>
+      <div class="panel">
+        <h3 class="m-0 mb-3 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{c.config.writeH}</h3>
+        <p class="mono-block m-0 break-all border border-aibox-line bg-aibox-bg p-3" style="border-radius:4px">{configPath}</p>
+        <p class="mt-3 mb-0 text-sm text-aibox-text2">{c.config.writeNote}</p>
+      </div>
+    </div>
+
+    <!-- 六路径卡片：等宽等权重（S5 视觉要点；推荐=右上角小标签不变色） -->
+    <h3 class="mt-12 mb-6 font-[family-name:var(--font-display)] text-2xl font-semibold text-aibox-cream">{c.config.getKeyH}</h3>
+    <div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))]">
+      {
+        c.config.paths.map((p) => (
+          <article class="relative flex flex-col gap-3 border border-aibox-line bg-aibox-raised p-5" style="border-radius:4px">
+            {p.tag && <span class="badge badge-green absolute right-4 top-4">{p.tag}</span>}
+            <h4 class="m-0 pr-24 font-[family-name:var(--font-display)] text-lg font-semibold text-aibox-cream">{p.name}</h4>
+            <p class="m-0 text-sm text-aibox-text2">{p.why}</p>
+            <p class="m-0 font-mono text-xs text-aibox-info">{p.keyHint}</p>
+            <ol class="m-0 list-none gap-2 p-0 text-sm text-aibox-text1">
+              {p.steps.map((s, i) => (
+                <li class="mb-2 flex gap-2">
+                  <span class="font-mono text-aibox-green">{i + 1}.</span>
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ol>
+            {p.rebate && <p class="m-0 text-xs text-aibox-text2">{p.rebate}</p>}
+            {p.note && <p class="m-0 border-l-2 border-aibox-info pl-2 text-xs text-aibox-text2">{p.note}</p>}
+            {keyUrl(p.id) && (
+              <a
+                class="mt-auto inline-flex items-center gap-1 font-mono text-xs text-aibox-info no-underline hover:text-aibox-green"
+                href={keyUrl(p.id)}
+                rel="noopener noreferrer nofollow"
+                target="_blank"
+              >
+                {p.name} ↗
+              </a>
+            )}
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- ============ FAQ（FAQPage JSON-LD 同源） ============ -->
+  <section class="mx-auto max-w-6xl px-5 py-14" id="faq">
+    <h2 class="h-section m-0 mb-8">{c.faq.heading}</h2>
+    <dl class="prose-page m-0">
+      {
+        c.faq.items.map((item, i) => (
+          <div class="border-b border-aibox-line py-6 first:pt-0">
+            <dt class="mb-2 flex items-start gap-4">
+              <span class="step-num" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span class="font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{item.q}</span>
+            </dt>
+            <dd class="m-0 pl-[calc(1.4em+1rem)] text-aibox-text2">
+              <p class="m-0">{item.a}</p>
+              {'link' in item && item.link && (
+                <p class="mt-2 mb-0">
+                  <a href={`/${lang}${item.link.href}`} class="text-aibox-info hover:text-aibox-green">
+                    {item.link.label} →
+                  </a>
+                </p>
+              )}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <!-- ============ 更新日志位（registry 记录的上游版本 + 每日探活说明） ============ -->
+  <section class="mx-auto max-w-6xl px-5 py-14" id="changelog">
+    <h2 class="h-section m-0 mb-8">{c.changelog.heading}</h2>
+    <div class="panel max-w-3xl">
+      <dl class="m-0 grid gap-3 text-sm">
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-aibox-text2">{c.changelog.versionH}</dt>
+          <dd class="m-0 font-mono text-aibox-cream">{detail.version ? `v${detail.version}` : c.changelog.unknown}</dd>
+        </div>
+        {
+          detail.upstreamNpm && (
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-aibox-text2">npm · {detail.upstreamNpm.name}</dt>
+              <dd class="m-0 font-mono text-aibox-cream">{detail.upstreamNpm.version || c.changelog.unknown}</dd>
+            </div>
+          )
+        }
+        {
+          detail.updatedAt && (
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-aibox-text2">{c.changelog.updatedH}</dt>
+              <dd class="m-0 font-mono text-aibox-cream">{detail.updatedAt.slice(0, 10)}</dd>
+            </div>
+          )
+        }
+      </dl>
+
+      {
+        detail.upstreamGithub && detail.upstreamGithub.length > 0 && (
+          <div class="mt-4 border-t border-aibox-line pt-4">
+            <p class="m-0 mb-2 text-sm text-aibox-text2">{c.changelog.upstreamH}</p>
+            <ul class="pixel-list m-0 p-0 text-sm">
+              {detail.upstreamGithub.map((g) => (
+                <li class="mb-1">
+                  <a
+                    class="font-mono text-aibox-info no-underline hover:text-aibox-green"
+                    href={`https://github.com/${g.repo}/releases/tag/${g.tag}`}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    {g.repo} {g.tag} ↗
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+
+      <p class="mt-4 mb-0 text-xs text-aibox-text2">{c.changelog.dailyNote}</p>
+    </div>
+  </section>
+
+  <!-- ============ 反馈入口（→ GitHub Issues） ============ -->
+  <section class="mx-auto max-w-6xl px-5 pb-16">
+    <div class="panel flex flex-wrap items-center justify-between gap-4">
+      <div class="max-w-2xl">
+        <h2 class="m-0 mb-1 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{c.feedback.heading}</h2>
+        <p class="m-0 text-sm text-aibox-text2">{c.feedback.body}</p>
+      </div>
+      <div class="flex flex-wrap gap-4">
+        <a class="btn-cta no-underline" href={feedbackUrl} rel="noopener noreferrer" target="_blank">
+          <span>{c.feedback.cta}</span>
+          <span class="mono" aria-hidden="true">↗</span>
+        </a>
+        <a class="btn-ghost" href={`/${lang}/apps/`}>{c.hero.back} →</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

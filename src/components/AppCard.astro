@@ -1,6 +1,7 @@
 ---
 // 应用目录卡片（registry 数据渲染；4px 圆角、禁玻璃拟态/大圆角）
 import type { RegistryApp } from '../data/registry';
+import { taglineFor } from '../data/registry';
 import type { Lang } from '../i18n/dict';
 import { t } from '../i18n/dict';
 
@@ -8,28 +9,37 @@ interface Props {
   app: RegistryApp;
   lang: Lang;
   live: boolean;
+  /** 有落地页时整卡可点（避免 404，只在 LANDING_APP_IDS 登记过的 id 挂链） */
+  href?: string;
 }
-const { app, lang, live } = Astro.props;
+const { app, lang, live, href } = Astro.props;
 const d = t(lang);
+const summary = taglineFor(app, lang) ?? app.summary;
 
 const platformName: Record<string, string> = { win: 'Windows', windows: 'Windows', mac: 'macOS', macos: 'macOS', darwin: 'macOS', linux: 'Linux' };
 const statusMap: Record<string, { label: string; cls: string }> = {
   available: { label: 'available', cls: 'badge-ok' },
   ready: { label: 'ready', cls: 'badge-ok' },
   installable: { label: 'installable', cls: 'badge-ok' },
+  stable: { label: 'stable', cls: 'badge-ok' },
   preview: { label: 'preview', cls: 'badge-info' },
   building: { label: 'building', cls: 'badge-info' },
   planned: { label: 'planned', cls: '' },
 };
 const status = app.status ? statusMap[app.status.toLowerCase()] ?? { label: app.status, cls: '' } : { label: '—', cls: '' };
 const level = app.difficulty ?? 0;
+const Tag = href ? 'a' : 'article';
 ---
-<article class="flex flex-col gap-3 border border-aibox-line bg-aibox-raised p-4" style="border-radius:4px">
+<Tag
+  href={href}
+  class="flex flex-col gap-3 border border-aibox-line bg-aibox-raised p-4 text-aibox-text1 no-underline transition-colors hover:border-aibox-green-d"
+  style="border-radius:4px"
+>
   <div class="flex items-center justify-between gap-2">
     <h3 class="m-0 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{app.name}</h3>
     <span class="sq" style={`background:${status.cls === 'badge-ok' ? 'var(--aibox-ok)' : status.cls === 'badge-info' ? 'var(--aibox-info)' : 'var(--aibox-line)'}`} aria-hidden="true"></span>
   </div>
-  {app.summary && <p class="m-0 text-sm text-aibox-text2">{app.summary}</p>}
+  {summary && <p class="m-0 text-sm text-aibox-text2">{summary}</p>}
   <dl class="m-0 mt-auto grid gap-2 text-xs">
     <div class="flex items-center justify-between gap-2">
       <dt class="text-aibox-text2">{d.catalog.difficulty}</dt>
@@ -52,4 +62,9 @@ const level = app.difficulty ?? 0;
       <dd class="m-0"><span class={`badge ${status.cls}`}>{status.label}</span>{!live && <span class="badge ml-1">mock</span>}</dd>
     </div>
   </dl>
-</article>
+  {href && (
+    <p class="m-0 mt-1 font-mono text-xs text-aibox-info">
+      {lang === 'zh' ? '查看教程' : 'View guide'} →
+    </p>
+  )}
+</Tag>
