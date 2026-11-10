@@ -12,7 +12,7 @@ interface Props {
 const { lang } = Astro.props;
 const c = pt(lang).download;
 
-// 构建时快照
+// 构建时快照（失败降级 null，构建不炸）→ 岛的回落数据
 const snapshot = await fetchReleaseSnapshot();
 
 const title = lang === 'zh' ? '下载 AiBOX - Windows 便携版与校验值 | aibox.im' : 'Download AiBOX - portable Windows build with checksums | aibox.im';

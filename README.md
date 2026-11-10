@@ -3,9 +3,6 @@
 AiBOX.im（中文名：智能盒子）的官方网站源码。**Astro 5 + Tailwind CSS 4 静态输出，默认零 JS**，
 构建产物直传 Cloudflare Pages：i18n 双首页 + VI 绿色系 + registry 构建时拉取。
 
-
-
-
 ## 部署（Cloudflare Pages）
 
 - CI：`.github/workflows/deploy.yml`，**仓库内零凭据**，凭据在 GitHub Secrets：

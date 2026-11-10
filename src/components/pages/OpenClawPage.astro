@@ -1,5 +1,5 @@
 ---
-// OpenClaw 落地页：
+// OpenClaw 落地页（en/zh 共用）—— SEO 主力页：
 // hero 超大字 + 🦞 记忆点 + 系统要求(registry runtime) + 安装三步 + CONFIG 六路径网页版
 // + FAQ(FAQPage JSON-LD) + 更新日志(registry) + 反馈入口
 // 结构化数据：SoftwareApplication + FAQPage（语法按 Google Rich RequirementsTest）
@@ -25,7 +25,7 @@ const level = app?.difficulty ?? 0;
 const statusRaw = (app?.status ?? 'preview').toLowerCase();
 const statusCls = ['stable', 'available', 'ready', 'installable'].includes(statusRaw) ? 'badge-ok' : ['preview', 'building'].includes(statusRaw) ? 'badge-info' : '';
 
-// —— SEO 标题模板——
+// —— SEO 标题模板 ——
 const title =
   lang === 'zh' ? 'OpenClaw 安装教程 2026 - 不会命令行也能装好 | aibox.im' : 'OpenClaw install guide 2026 - set it up without the terminal | aibox.im';
 const description =

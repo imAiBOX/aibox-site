@@ -1,6 +1,6 @@
 // 构建时拉取 aibox-app 最新 Release 快照（下载页展示区的兜底数据）
 // 容错红线：GitHub 匿名 API 限流/超时/格式不符 → 返回 null，**构建绝不允许炸**。
-// 运行时主路径是客户端岛。
+// 运行时主路径是客户端岛（ReleaseInfo.tsx，5 分钟缓存），本快照仅作失败回落。
 
 export type ReleaseAsset = {
   name: string;

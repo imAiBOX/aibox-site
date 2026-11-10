@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import type { ReleaseSnapshot } from '../data/release';
 
 // 下载页版本/SHA256 展示区（React 岛，client:load）
-// 7.4 零依赖原则：客户端 fetch GitHub API releases/latest（匿名 60/h/IP），
+// 零依赖原则：客户端 fetch GitHub API releases/latest（匿名 60/h/IP），
 // localStorage 5 分钟缓存（每用户会话 ≤2 次调用）；失败回落构建时快照（构建绝不炸）。
 
 type ReleaseAsset = { name: string; size: number; url: string; sha256?: string };

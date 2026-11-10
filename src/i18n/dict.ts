@@ -48,9 +48,9 @@ const en = {
     difficultyLevel: (n: number) => `${n} / 5`,
   },
   footer: {
-    phase: 'static site, no backend, no cookies.',
+    phase: 'Static site, no backend, no cookies.',
     copy: '© 2026 AiBOX.im · data from GitHub, served as static HTML.',
-    // R6 独立声明：页脚必须标注
+    // 独立声明：页脚必须标注
     independent:
       'Aibox is an independent community project and is not affiliated with the official apps listed.',
     github: 'GitHub',
@@ -103,7 +103,7 @@ const zh: Dict = {
   footer: {
     phase: '纯静态站，无后端、无 Cookie。',
     copy: '© 2026 AiBOX.im · 数据来自 GitHub，纯静态 HTML 输出。',
-    // R6 独立声明：页脚必须标注
+    // 独立声明：页脚必须标注
     independent: 'Aibox 是独立社区项目，与所列应用官方无隶属关系。',
     github: 'GitHub',
     linksTitle: '页面',

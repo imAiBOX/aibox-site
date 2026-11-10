@@ -70,7 +70,7 @@ const websiteLd = {
     {jsonLd.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
   </head>
   <body class="min-h-screen bg-aibox-bg text-aibox-text1">
-    <!-- 质感层：SVG 噪点 -->
+    <!-- 质感层：SVG 噪点（禁渐变横幅/玻璃拟态） -->
     <div class="grain" aria-hidden="true"></div>
 
     <header class="relative mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-5">
@@ -97,7 +97,7 @@ const websiteLd = {
         {Array.from({ length: 16 }, (_, i) => <i class={i % 4 === 0 ? 'on' : ''}></i>)}
       </div>
 
-      <!-- R6 独立声明 -->
+      <!-- 独立声明（页脚必须标注） -->
       <p class="mb-4 max-w-3xl text-sm text-aibox-cream">{d.footer.independent}</p>
 
       <div class="mb-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">

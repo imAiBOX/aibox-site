@@ -29,7 +29,7 @@
   --radius-box: 4px;
 }
 
-/* 原样 token 名 */
+/* 原样 token 名（供非 Tailwind 场景） */
 :root {
   --aibox-bg: #0a0a0a;
   --aibox-raised: #14161a;
@@ -68,7 +68,7 @@ html[lang='zh'] body {
 
 /* —— 母题：像素圆角方块（logo 机器人脸衍生）—— */
 
-/* 质感层：SVG 噪点 */
+/* 质感层：SVG 噪点（feTurbulence data-URI，非渐变；真实质感层） */
 .grain {
   position: fixed;
   inset: 0;
@@ -197,7 +197,7 @@ html[lang='zh'] .h-section {
   border-color: var(--aibox-green);
 }
 
-/* 内容页通用：窄栏正文 */
+/* 内容页通用：窄栏正文（72ch 双栏窄排的单栏版） */
 .prose-page {
   max-width: 72ch;
 }
@@ -229,7 +229,7 @@ html[lang='zh'] .prose-page h2 {
   font-weight: 600;
 }
 
-/* 步骤列表 */
+/* 步骤列表（SmartScreen/网络自查/FAQ 编号）：44px 衬线/展示数字 */
 .step-num {
   font-family: var(--font-display);
   font-weight: 600;

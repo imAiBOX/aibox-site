@@ -1,5 +1,5 @@
 # 部署 aibox-site → Cloudflare Pages（GitHub Actions 出站，仓库零凭据）
-# 触发链：
+# 触发链（数据流三层）：
 #   1) push main           → 重建部署
 #   2) repository_dispatch registry-updated → registry 仓 push 后触发重建（I1 拉最新数据）
 #   3) schedule 每日一次    → 兜底重建（Pages 构建 500/月配额：日 1 次 ≈30/月，安全）
@@ -61,6 +61,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -76,6 +78,9 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Sanitization scan (full history)
+        run: node scripts/prepush-scan.mjs --history
 
       - name: Check zh/en route parity
         run: node scripts/check-routes.mjs
