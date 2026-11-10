@@ -1,7 +1,7 @@
 ---
 import '@fontsource/space-grotesk/600.css';
-import '@fontsource/noto-sans-sc/400.css';
-import '@fontsource/noto-sans-sc/500.css';
+// 中文不加载 webfont（Noto Sans SC 分片 CSS 300KB+ 阻塞渲染，FCP 拖分）：
+// 字体族保留 'Noto Sans SC' 名（本机已装则用），否则回退系统黑体——设计规范允许的回退策略
 import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/handjet/400.css';
 import '../styles/global.css';
