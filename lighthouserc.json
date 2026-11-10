@@ -1,0 +1,18 @@
+{
+  "ci": {
+    "collect": {
+      "staticDistDir": "dist",
+      "url": ["/en/", "/zh/", "/en/apps/openclaw/", "/zh/download/"],
+      "numberOfRuns": 1,
+      "settings": { "formFactor": "desktop", "screenEmulation": { "width": 1350, "height": 940, "deviceScaleFactor": 1, "mobile": false } }
+    },
+    "assert": {
+      "assertions": {
+        "performance": ["error", { "minScore": 0.95 }],
+        "accessibility": ["error", { "minScore": 0.9 }],
+        "seo": ["error", { "minScore": 0.9 }]
+      }
+    },
+    "upload": { "target": "temporary-public-storage" }
+  }
+}
