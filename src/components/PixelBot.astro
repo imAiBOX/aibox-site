@@ -15,8 +15,9 @@ const { label } = Astro.props;
     <span class="ear right"></span>
   </div>
   <div class="bot-grid" aria-hidden="true">
-    <i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i>
-    <i></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i>
+    {Array.from({ length: 16 }, (_, i) => (
+      <i class={i % 3 === 0 ? 'on' : ''} style={`animation-delay:${i * 0.18}s`}></i>
+    ))}
   </div>
 </div>
 
@@ -83,9 +84,27 @@ const { label } = Astro.props;
     height: 6px;
     border-radius: 1px;
     background: var(--aibox-line);
+    /* 方块逐个点亮（母题 loading 动画） */
+    animation: cell-light 3.2s steps(1) infinite;
   }
   .bot-grid i.on {
     background: var(--aibox-green);
+  }
+  @keyframes cell-light {
+    0%,
+    100% {
+      background: var(--aibox-line);
+    }
+    25%,
+    55% {
+      background: var(--aibox-green);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bot-grid i,
+    .eye {
+      animation: none !important;
+    }
   }
   @keyframes blink {
     0%, 92%, 100% { transform: scaleY(1); }

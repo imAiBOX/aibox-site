@@ -1,0 +1,41 @@
+---
+// 隐私页（en/zh 共用）：诚实短文——零后端零 cookie、key 不经过我们、日志本地
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { pt, type Lang } from '../../i18n/pages';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const c = pt(lang).privacy;
+
+const title = lang === 'zh' ? '隐私说明 - 零后端、零 Cookie、key 不经过我们 | aibox.im' : 'Privacy - zero backend, zero cookies, your key never passes through us | aibox.im';
+const description =
+  lang === 'zh'
+    ? 'AiBOX 隐私说明：官网纯静态无 Cookie，API key 只存在你本机，日志留在本地，导出诊断由你主动发送。'
+    : 'AiBOX privacy: static site with no cookies, your API key stays on your machine, logs stay local, diagnostics only leave when you send them.';
+---
+
+<BaseLayout lang={lang} title={title} description={description}>
+  <PageHeader title={c.title} lede={c.lede} />
+
+  <section class="mx-auto max-w-6xl px-5 py-10">
+    <div class="prose-page">
+      {
+        c.blocks.map((b, i) => (
+          <>
+            {i > 0 && <hr class="my-8 border-aibox-line" />}
+            <h2>{b.h}</h2>
+            <p>{b.p}</p>
+          </>
+        ))
+      }
+
+      <div class="panel mt-10">
+        <h2 class="mt-0 mb-2 text-2xl">{c.contactH}</h2>
+        <p class="m-0 text-aibox-text2">{c.contact}</p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

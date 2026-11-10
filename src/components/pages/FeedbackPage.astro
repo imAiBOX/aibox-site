@@ -1,0 +1,53 @@
+---
+// 反馈页（en/zh 共用）：GitHub Issues 引导 + 邮箱
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { pt, type Lang } from '../../i18n/pages';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const c = pt(lang).feedback;
+
+const title = lang === 'zh' ? '反馈 - GitHub Issues 与邮箱 | aibox.im' : 'Feedback - GitHub issues and email | aibox.im';
+const description =
+  lang === 'zh'
+    ? '遇到 bug 或装不上？开 GitHub Issues 或发邮件 hi@aibox.im，附上脱敏诊断更快。'
+    : 'Hit a bug or an install that will not finish? Open a GitHub issue or email hi@aibox.im — scrubbed diagnostics help most.';
+---
+
+<BaseLayout lang={lang} title={title} description={description}>
+  <PageHeader title={c.title} lede={c.lede} />
+
+  <section class="mx-auto max-w-6xl px-5 py-10">
+    <!-- 渠道列表：纵向堆叠面板（禁三等宽卡片阵列） -->
+    <div class="grid max-w-3xl gap-5">
+      {
+        c.channels.map((ch) => (
+          <div class="panel flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div class="max-w-2xl">
+              <h2 class="m-0 mb-1 text-2xl">{ch.h}</h2>
+              <p class="m-0 text-sm text-aibox-text2">{ch.p}</p>
+            </div>
+            <a
+              class="btn-cta shrink-0 text-base no-underline"
+              href={ch.href}
+              rel={ch.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+              target={ch.href.startsWith('http') ? '_blank' : undefined}
+            >
+              {ch.cta} ↗
+            </a>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="prose-page mt-10">
+      <div class="panel">
+        <h2 class="mt-0 mb-2 text-2xl">{c.diagH}</h2>
+        <p class="m-0 text-aibox-text2">{c.diag}</p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

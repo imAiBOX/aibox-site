@@ -11,12 +11,35 @@ interface Props {
   lang: Lang;
   title: string;
   description: string;
+  /** 页面专属 JSON-LD（FAQPage 等）；站点级 WebSite 由本 layout 统一输出 */
+  jsonLd?: Record<string, unknown>[];
+  /** 从 sitemap/页面集合排除（根分流页用） */
+  noindex?: boolean;
 }
-const { lang, title, description } = Astro.props;
+const { lang, title, description, jsonLd = [], noindex = false } = Astro.props;
 const d = t(lang);
 const other: Lang = lang === 'en' ? 'zh' : 'en';
 const path = Astro.url.pathname;
-const otherPath = path.replace(`/${lang}/`, `/${other}/`) || `/${other}/`;
+// hreflang/canonical 用生产域做规范（开发期在 pages.dev，但 SEO 按 aibox.im 输出）
+const SITE = 'https://aibox.im';
+const otherPath = (path.replace(`/${lang}/`, `/${other}/`) || `/${other}/`) as string;
+const canonical = `${SITE}${path}`;
+
+// 站点级 WebSite JSON-LD
+const websiteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'AiBOX.im',
+  alternateName: ['AiBOX', '智能盒子'],
+  url: SITE,
+  inLanguage: ['en', 'zh'],
+  description,
+  publisher: {
+    '@type': 'Organization',
+    name: 'imAiBOX',
+    url: 'https://github.com/imAiBOX',
+  },
+};
 ---
 <!doctype html>
 <html lang={lang}>
@@ -26,25 +49,42 @@ const otherPath = path.replace(`/${lang}/`, `/${other}/`) || `/${other}/`;
     <meta name="theme-color" content="#0A0A0A" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <!-- hreflang：zh/en 互指 -->
-    <link rel="alternate" hreflang="en" href="/en/" />
-    <link rel="alternate" hreflang="zh" href="/zh/" />
-    <link rel="alternate" hreflang="x-default" href="/en/" />
+    <link rel="canonical" href={canonical} />
+    <!-- hreflang：zh/en 互指（绝对地址，生产域规范） -->
+    <link rel="alternate" hreflang="en" href={`${SITE}${path.replace(`/${lang}/`, '/en/')}`} />
+    <link rel="alternate" hreflang="zh" href={`${SITE}${path.replace(`/${lang}/`, '/zh/')}`} />
+    <link rel="alternate" hreflang="x-default" href={`${SITE}${path.replace(`/${lang}/`, '/en/')}`} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="AiBOX.im" />
+    <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'en_US'} />
+    <meta property="og:locale:alternate" content={lang === 'zh' ? 'en_US' : 'zh_CN'} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
+    {jsonLd.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
   </head>
   <body class="min-h-screen bg-aibox-bg text-aibox-text1">
-    <header class="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
+    <!-- 质感层：SVG 噪点 -->
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="relative mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-5">
       <a href={`/${lang}/`} class="flex items-baseline gap-2 no-underline">
+        <span class="sq mb-1 bg-aibox-green" aria-hidden="true"></span>
         <span class="brand-pixel text-2xl text-aibox-cream">AiBOX.im</span>
-        <span class="badge">{d.brandSub}</span>
+        <span class="badge hidden sm:inline-flex">{d.brandSub}</span>
       </a>
-      <nav class="flex items-center gap-5 text-sm">
+      <nav class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
         <a href={`/${lang}/#apps`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.catalog}</a>
-        <a href={`/${lang}/#download-note`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.download}</a>
-        <a href={otherPath} hreflang={other} class="badge badge-green no-underline">{langLabel[other]}</a>
+        <a href={`/${lang}/download/`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.download}</a>
+        <a href={`/${lang}/faq/`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.faq}</a>
+        <a href={`/${lang}/about/`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.about}</a>
+        <a href={otherPath} hreflang={other} class="badge badge-green no-underline" rel="alternate">{langLabel[other]}</a>
       </nav>
     </header>
 
@@ -52,12 +92,34 @@ const otherPath = path.replace(`/${lang}/`, `/${other}/`) || `/${other}/`;
       <slot />
     </main>
 
-    <footer class="mx-auto mt-20 max-w-6xl border-t border-aibox-line px-5 py-8 text-sm text-aibox-text2">
-      <div class="mb-3 pixel-rule" aria-hidden="true">
+    <footer class="relative mx-auto mt-20 max-w-6xl border-t border-aibox-line px-5 py-10 text-sm text-aibox-text2">
+      <div class="mb-4 pixel-rule" aria-hidden="true">
         {Array.from({ length: 16 }, (_, i) => <i class={i % 4 === 0 ? 'on' : ''}></i>)}
       </div>
+
+      <!-- R6 独立声明 -->
+      <p class="mb-4 max-w-3xl text-sm text-aibox-cream">{d.footer.independent}</p>
+
+      <div class="mb-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        <a href={`/${lang}/download/`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.download}</a>
+        <a href={`/${lang}/faq/`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.faq}</a>
+        <a href={`/${lang}/about/`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.about}</a>
+        <a href={`/${lang}/privacy/`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.privacy}</a>
+        <a href={`/${lang}/feedback/`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.feedback}</a>
+        <a
+          href="https://github.com/imAiBOX"
+          class="text-aibox-text2 no-underline hover:text-aibox-green"
+          rel="noopener noreferrer"
+          target="_blank">{d.footer.github} ↗</a
+        >
+      </div>
+
       <p class="mb-1 font-mono text-xs">{d.footer.phase}</p>
       <p class="text-xs">{d.footer.copy}</p>
+      <div class="mt-4 flex gap-3">
+        <a href="/en/" hreflang="en" class="badge no-underline">English</a>
+        <a href="/zh/" hreflang="zh" class="badge no-underline">中文</a>
+      </div>
     </footer>
   </body>
 </html>

@@ -1,0 +1,17 @@
+---
+// 内容页通用页头（超大字标题 + 一句话导语；R2 超大字承担层级）
+interface Props {
+  title: string;
+  lede: string;
+}
+const { title, lede } = Astro.props;
+---
+<section class="mx-auto max-w-6xl px-5 pt-8 pb-2">
+  <h1 class="hero-title m-0">{title}</h1>
+  <p class="mt-5 max-w-2xl text-lg text-aibox-text2">{lede}</p>
+</section>
+<div class="mx-auto max-w-6xl px-5">
+  <div class="pixel-rule mt-8" aria-hidden="true">
+    {Array.from({ length: 24 }, (_, i) => <i class={i % 4 === 0 ? 'on' : ''}></i>)}
+  </div>
+</div>

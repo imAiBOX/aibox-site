@@ -1,0 +1,50 @@
+---
+// 关于页（en/zh 共用）：项目定位 + 独立声明 + 联系方式
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { pt, type Lang } from '../../i18n/pages';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const c = pt(lang).about;
+
+const title = lang === 'zh' ? '关于 AiBOX - 独立社区项目 | aibox.im' : 'About AiBOX - an independent community project | aibox.im';
+const description =
+  lang === 'zh'
+    ? 'AiBOX（智能盒子）是什么、不是什么：独立社区项目、开源、免安装，帮小白把桌面 AI 工具真正装好。'
+    : 'What AiBOX is and is not: an independent, open-source, portable installer that gets desktop AI tools actually working.';
+---
+
+<BaseLayout lang={lang} title={title} description={description}>
+  <PageHeader title={c.title} lede={c.lede} />
+
+  <section class="mx-auto max-w-6xl px-5 py-10">
+    <div class="prose-page">
+      {
+        c.blocks.map((b, i) => (
+          <>
+            {i > 0 && (
+              <div class="pixel-rule my-8" aria-hidden="true">
+                {Array.from({ length: 16 }, (_, j) => <i class={j % 4 === 0 ? 'on' : ''}></i>)}
+              </div>
+            )}
+            <h2>{b.h}</h2>
+            <p>{b.p}</p>
+          </>
+        ))
+      }
+
+      <div class="panel mt-10">
+        <h2 class="mt-0 mb-2 text-2xl">{c.contactH}</h2>
+        <p class="m-0 text-aibox-text2">{c.contact}</p>
+        <p class="mt-4 mb-0">
+          <a href="https://github.com/imAiBOX" rel="noopener noreferrer" target="_blank" class="text-aibox-info hover:text-aibox-green">
+            {c.github} ↗
+          </a>
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

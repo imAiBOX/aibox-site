@@ -10,7 +10,15 @@ export const langLabel: Record<Lang, string> = { en: 'English', zh: '中文' };
 const en = {
   brand: 'AiBOX.im',
   brandSub: 'Portable AI toolbox',
-  nav: { catalog: 'App catalog', download: 'Download' },
+  nav: {
+    home: 'Home',
+    catalog: 'Apps',
+    download: 'Download',
+    faq: 'FAQ',
+    about: 'About',
+    feedback: 'Feedback',
+    privacy: 'Privacy',
+  },
   hero: {
     title: 'Installed until it works.',
     lede: 'AiBOX installs desktop tools for you — from a fresh PC to a real model reply. No terminal, no admin rights, no guessing what to type next.',
@@ -40,8 +48,13 @@ const en = {
     difficultyLevel: (n: number) => `${n} / 5`,
   },
   footer: {
-    phase: 'static site skeleton.',
-    copy: 'AiBOX.im · data from GitHub, served as static HTML.',
+    phase: 'static site, no backend, no cookies.',
+    copy: '© 2026 AiBOX.im · data from GitHub, served as static HTML.',
+    // R6 独立声明：页脚必须标注
+    independent:
+      'Aibox is an independent community project and is not affiliated with the official apps listed.',
+    github: 'GitHub',
+    linksTitle: 'Pages',
   },
 } ;
 
@@ -50,7 +63,15 @@ type Dict = typeof en;
 const zh: Dict = {
   brand: 'AiBOX.im',
   brandSub: '智能盒子',
-  nav: { catalog: '应用目录', download: '下载' },
+  nav: {
+    home: '首页',
+    catalog: '应用目录',
+    download: '下载',
+    faq: '常见问题',
+    about: '关于',
+    feedback: '反馈',
+    privacy: '隐私',
+  },
   hero: {
     title: '装到能用为止。',
     lede: 'AiBOX 帮你把桌面工具真正装好——从一台新电脑到模型回复第一条消息。不开终端、不要管理员权限、不用猜下一步该敲什么。',
@@ -80,8 +101,12 @@ const zh: Dict = {
     difficultyLevel: (n: number) => `${n} / 5`,
   },
   footer: {
-    phase: '静态站骨架。',
-    copy: 'AiBOX.im · 数据来自 GitHub，纯静态 HTML 输出。',
+    phase: '纯静态站，无后端、无 Cookie。',
+    copy: '© 2026 AiBOX.im · 数据来自 GitHub，纯静态 HTML 输出。',
+    // R6 独立声明：页脚必须标注
+    independent: 'Aibox 是独立社区项目，与所列应用官方无隶属关系。',
+    github: 'GitHub',
+    linksTitle: '页面',
   },
 };
 

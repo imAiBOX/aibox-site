@@ -1,0 +1,72 @@
+---
+// 下载页（en/zh 共用）：双平台大按钮 + SHA256/版本展示岛 + SmartScreen 引导
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import ReleaseInfo from '../../components/ReleaseInfo.tsx';
+import { fetchReleaseSnapshot } from '../../data/release';
+import { pt, type Lang } from '../../i18n/pages';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const c = pt(lang).download;
+
+// 构建时快照
+const snapshot = await fetchReleaseSnapshot();
+
+const title = lang === 'zh' ? '下载 AiBOX - Windows 便携版与校验值 | aibox.im' : 'Download AiBOX - portable Windows build with checksums | aibox.im';
+const description =
+  lang === 'zh'
+    ? '下载 AiBOX Windows 便携版：免安装、不要管理员权限。附当前版本号与 SHA-256 校验值，以及 SmartScreen 警告四步图文引导。'
+    : 'Download the AiBOX portable build for Windows — no installer, no admin rights. Version, SHA-256 checksum and a four-step SmartScreen guide included.';
+const RELEASE_URL = 'https://github.com/imAiBOX/aibox-app/releases/latest';
+---
+
+<BaseLayout lang={lang} title={title} description={description}>
+  <PageHeader title={c.title} lede={c.lede} />
+
+  <section class="mx-auto max-w-6xl px-5 py-10" id="download">
+    <!-- 双平台大按钮（禁三等宽卡片阵列：两列不等宽，macOS 为禁用态） -->
+    <div class="grid max-w-3xl gap-4 md:grid-cols-[1.3fr_1fr]">
+      <a class="btn-platform" href={RELEASE_URL} rel="noopener noreferrer">
+        <span class="plat-name">{c.win.label} ↓</span>
+        <span class="plat-note">{c.win.note}</span>
+        <span class="mt-2 inline-flex items-center gap-2 border-t border-black/20 pt-2 text-sm font-semibold">
+          {c.win.cta}
+        </span>
+      </a>
+      <span class="btn-platform disabled" aria-disabled="true">
+        <span class="plat-name">{c.mac.label}</span>
+        <span class="plat-note">{c.mac.note}</span>
+        <span class="mt-2 inline-flex items-center gap-2 border-t border-aibox-line pt-2 text-sm">{c.mac.cta}</span>
+      </span>
+    </div>
+
+    <!-- 版本 / SHA-256 展示区（React 岛：fetch GitHub API + 5min 缓存，失败回落构建时快照） -->
+    <div class="mt-8 max-w-3xl">
+      <ReleaseInfo client:load snapshot={snapshot} labels={c.release} />
+    </div>
+  </section>
+
+  <!-- SmartScreen 引导（图文四步 → 专属教程页） -->
+  <section class="mx-auto max-w-6xl px-5 py-8" id="smartscreen">
+    <div class="panel max-w-3xl">
+      <h2 class="m-0 mb-3 font-[family-name:var(--font-display)] text-2xl font-semibold text-aibox-cream">
+        {c.smartscreen.heading}
+      </h2>
+      <p class="m-0 text-aibox-text2">{c.smartscreen.body}</p>
+      <a class="btn-ghost mt-4" href={`/${lang}/guides/smartscreen/`}>{c.smartscreen.cta} →</a>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-5 py-8">
+    <div class="max-w-3xl">
+      <div class="pixel-rule mb-5" aria-hidden="true">
+        {Array.from({ length: 16 }, (_, i) => <i class={i % 4 === 0 ? 'on' : ''}></i>)}
+      </div>
+      <h2 class="h-section m-0 mb-3">{c.integrity.heading}</h2>
+      <p class="m-0 text-aibox-text2">{c.integrity.body}</p>
+    </div>
+  </section>
+</BaseLayout>

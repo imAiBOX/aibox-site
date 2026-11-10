@@ -1,0 +1,60 @@
+---
+// FAQ 页
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { pt, type Lang } from '../../i18n/pages';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const c = pt(lang).faq;
+
+const title = lang === 'zh' ? '常见问题 - 不会命令行也能装好 | aibox.im' : 'FAQ - install AI apps without the terminal | aibox.im';
+const description =
+  lang === 'zh'
+    ? '人话回答：要会命令行吗、安全吗、要不要管理员权限、怎么卸载、key 存哪、网络问题怎么办。'
+    : 'Plain answers: do I need a terminal, is it safe, admin rights, uninstall, where your API key lives, network problems.';
+
+// FAQPage 结构化数据
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: c.items.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+---
+
+<BaseLayout lang={lang} title={title} description={description} jsonLd={[faqLd]}>
+  <PageHeader title={c.title} lede={c.lede} />
+
+  <section class="mx-auto max-w-6xl px-5 py-10">
+    <dl class="prose-page m-0">
+      {
+        c.items.map((item, i) => (
+          <div class="border-b border-aibox-line py-6 first:pt-0">
+            <dt class="mb-2 flex items-start gap-4">
+              <span class="step-num" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span class="font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{item.q}</span>
+            </dt>
+            <dd class="m-0 pl-[calc(1.4em+1rem)] text-aibox-text2">
+              <p class="m-0">{item.a}</p>
+              {'link' in item && item.link && (
+                <p class="mt-2 mb-0">
+                  <a href={`/${lang}${item.link.href}`} class="text-aibox-info hover:text-aibox-green">
+                    {item.link.label} →
+                  </a>
+                </p>
+              )}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+</BaseLayout>

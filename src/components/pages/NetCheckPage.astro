@@ -1,0 +1,52 @@
+---
+// 网络自查指南页（en/zh 共用）：FAQ 网络问题的落地页（人话五步）
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { pt, type Lang } from '../../i18n/pages';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const c = pt(lang).netcheck;
+
+const title = lang === 'zh' ? '网络自查 - 下载慢、装到一半报网络错误 | aibox.im' : 'Network self-check - slow downloads and install errors | aibox.im';
+const description =
+  lang === 'zh'
+    ? '下载慢或安装报网络错误？五步自查：网通吗、GitHub 能开吗、换网络、让 AiBOX 换源、导出诊断。'
+    : 'Slow download or a network error mid-install? Five checks: internet, GitHub reachability, another network, let AiBOX switch mirrors, export diagnostics.';
+---
+
+<BaseLayout lang={lang} title={title} description={description}>
+  <PageHeader title={c.title} lede={c.lede} />
+
+  <section class="mx-auto max-w-6xl px-5 py-10">
+    <div class="prose-page">
+      <h2 class="mt-0">{c.stepsH}</h2>
+      <ol class="relative m-0 list-none border-l border-aibox-line p-0 pl-8">
+        {
+          c.steps.map((step) => (
+            <li class="relative mb-8 last:mb-0">
+              <span class="sq absolute -left-[calc(2rem+5px)] top-3 bg-aibox-green" aria-hidden="true" />
+              <h3 class="m-0 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{step.t}</h3>
+              <p class="mt-1 mb-0 text-aibox-text2">{step.d}</p>
+            </li>
+          ))
+        }
+      </ol>
+
+      <div class="panel mt-8">
+        <h2 class="mt-0 mb-2 text-2xl">{c.faqLinkH}</h2>
+        <p class="text-aibox-text2">{c.faqLink}</p>
+        <div class="flex flex-wrap gap-4">
+          <a class="btn-ghost" href={`/${lang}/faq/`}>{c.faqCta} →</a>
+          <a class="btn-ghost" href={`/${lang}/feedback/`}>{c.feedbackCta} →</a>
+        </div>
+      </div>
+
+      <p class="mt-8">
+        <a href={`/${lang}/`} class="text-aibox-info hover:text-aibox-green">← {c.back}</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>

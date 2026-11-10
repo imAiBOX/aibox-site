@@ -1,10 +1,10 @@
 ---
-// 首页（en/zh 共用）—— 骨架级：hero + 3 步竖向时间线 + 应用目录占位区
+// 首页（en/zh 共用）—— hero 超大字 + 像素机器人方块动画 + 3 步竖向时间线 + registry 真数据卡片
+// 视觉母题 =「开箱即用的工具箱」× 品牌绿色系（源自 logo）
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PixelBot from '../components/PixelBot.astro';
 import PixelRule from '../components/PixelRule.astro';
 import AppCard from '../components/AppCard.astro';
-import DownloadButton from '../components/DownloadButton.tsx';
 import { fetchRegistry } from '../data/registry';
 import { t, type Lang } from '../i18n/dict';
 
@@ -17,7 +17,7 @@ const d = t(lang);
 // I1 不变式：构建时拉 registry；失败自动降级为内置占位（fetchRegistry 内部容错，绝不抛）
 const registry = await fetchRegistry();
 
-const title = lang === 'zh' ? 'AiBOX.im 智能盒子 — 装到能用为止' : 'AiBOX.im — Installed until it works';
+const title = lang === 'zh' ? 'AiBOX 智能盒子 - 装到能用为止 | aibox.im' : 'AiBOX - Installed until it works | aibox.im';
 const description =
   lang === 'zh'
     ? 'AiBOX 帮完全小白把桌面 AI 工具真正装好：自动体检、按序安装、填好 key、验证能用。绿色免安装，Windows / macOS。'
@@ -25,8 +25,8 @@ const description =
 ---
 
 <BaseLayout lang={lang} title={title} description={description}>
-  <!-- ============ HERO ============ -->
-  <section class="mx-auto grid max-w-6xl items-center gap-10 px-5 pt-10 pb-16 md:grid-cols-[1.2fr_1fr] md:pt-16">
+  <!-- ============ HERO（R2 超大字承担层级；主 CTA 绿底黑字） ============ -->
+  <section class="mx-auto grid max-w-6xl items-center gap-10 px-5 pt-8 pb-16 md:grid-cols-[1.25fr_1fr] md:pt-14">
     <div>
       <div class="mb-6 flex items-center gap-3">
         <span class="sq bg-aibox-green" aria-hidden="true"></span>
@@ -35,11 +35,14 @@ const description =
       <h1 class="hero-title m-0">{d.hero.title}</h1>
       <p class="mt-6 max-w-xl text-lg text-aibox-text2">{d.hero.lede}</p>
 
-      <div class="mt-8 flex flex-wrap items-center gap-6" id="download-note">
-        <DownloadButton label={d.hero.cta} hint={d.hero.ctaHint} />
+      <div class="mt-8 flex flex-wrap items-center gap-6">
+        <a class="btn-cta no-underline" href={`/${lang}/download/`}>
+          <span>{d.hero.cta}</span>
+          <span class="mono" aria-hidden="true">↓</span>
+        </a>
         <a class="btn-ghost" href="#apps">{d.hero.secondary} ↓</a>
       </div>
-      <p class="mt-3 font-mono text-xs text-aibox-text2">placeholder · TODO: GitHub Releases 直链</p>
+      <p class="mt-4 font-mono text-xs text-aibox-text2">{d.hero.ctaHint}</p>
     </div>
 
     <div class="justify-self-center md:justify-self-end">
@@ -49,29 +52,32 @@ const description =
 
   <div class="mx-auto max-w-6xl px-5"><PixelRule length={32} every={4} /></div>
 
-  <!-- ============ 3 步：竖向时间线（禁三等宽卡片阵列） ============ -->
+  <!-- ============ 3 步：竖向时间线（禁三等宽卡片阵列；完成态绿方点） ============ -->
   <section class="mx-auto max-w-6xl px-5 py-14" id="steps">
     <h2 class="h-section m-0 mb-10">{d.steps.title}</h2>
-    <ol class="relative m-0 list-none border-l border-aibox-line p-0 pl-8">
+    <ol class="relative m-0 list-none border-l border-aibox-line p-0 pl-10">
       {d.steps.items.map((step, i) => (
         <li class="relative mb-10 last:mb-0">
           <span
-            class="sq absolute -left-[calc(2rem+5px)] top-1.5"
+            class="sq absolute -left-[calc(2.5rem+5px)] top-2"
             style={`background:${i === d.steps.items.length - 1 ? 'var(--aibox-ok)' : 'var(--aibox-green)'}`}
             aria-hidden="true"
           >
           </span>
-          <div class="mb-1 flex items-baseline gap-3">
-            <span class="font-mono text-xs text-aibox-text2">0{i + 1}</span>
+          <div class="mb-1 flex items-baseline gap-4">
+            <span class="font-mono text-sm text-aibox-text2">0{i + 1}</span>
             <h3 class="m-0 font-[family-name:var(--font-display)] text-2xl font-semibold text-aibox-cream">{step.t}</h3>
           </div>
           <p class="m-0 max-w-2xl text-aibox-text2">{step.d}</p>
+          {i === d.steps.items.length - 1 && (
+            <span class="badge badge-ok mt-2">✓ {d.steps.done}</span>
+          )}
         </li>
       ))}
     </ol>
   </section>
 
-  <!-- ============ 应用目录占位区（registry 数据） ============ -->
+  <!-- ============ 主推应用区（registry 真数据卡片 + I1 失败降级占位） ============ -->
   <section class="mx-auto max-w-6xl px-5 py-14" id="apps">
     <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
