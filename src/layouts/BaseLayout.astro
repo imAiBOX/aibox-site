@@ -1,9 +1,10 @@
 ---
-import '@fontsource/space-grotesk/600.css';
+// 只引 latin 子集（全子集 @font-face 44KB 拖 FCP/LCP；中文本就走系统字体回退）
+import '@fontsource/space-grotesk/latin-600.css';
 // 中文不加载 webfont（Noto Sans SC 分片 CSS 300KB+ 阻塞渲染，FCP 拖分）：
 // 字体族保留 'Noto Sans SC' 名（本机已装则用），否则回退系统黑体——设计规范允许的回退策略
-import '@fontsource/jetbrains-mono/400.css';
-import '@fontsource/handjet/400.css';
+import '@fontsource/jetbrains-mono/latin-400.css';
+import '@fontsource/handjet/latin-400.css';
 import '../styles/global.css';
 import { t, langLabel, type Lang } from '../i18n/dict';
 
@@ -13,10 +14,12 @@ interface Props {
   description: string;
   /** 页面专属 JSON-LD（FAQPage 等）；站点级 WebSite 由本 layout 统一输出 */
   jsonLd?: Record<string, unknown>[];
+  /** 首页 LCP = hero lockup 图；首页才 preload（其他页预载无用图会拖分） */
+  preloadLcp?: boolean;
   /** 从 sitemap/页面集合排除（根分流页用） */
   noindex?: boolean;
 }
-const { lang, title, description, jsonLd = [], noindex = false } = Astro.props;
+const { lang, title, description, jsonLd = [], noindex = false, preloadLcp = false } = Astro.props;
 const d = t(lang);
 const other: Lang = lang === 'en' ? 'zh' : 'en';
 const path = Astro.url.pathname;
@@ -50,6 +53,19 @@ const websiteLd = {
     <title>{title}</title>
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
+    {
+      preloadLcp && (
+        <link
+          rel="preload"
+          as="image"
+          type="image/webp"
+          href="/images/logo-lockup-420.webp"
+          imagesrcset="/images/logo-lockup-420.webp 420w, /images/logo-lockup.webp 840w"
+          imagesizes="420px"
+          fetchpriority="high"
+        />
+      )
+    }
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />

@@ -23,7 +23,7 @@ const description =
     : 'AiBOX installs desktop AI tools for you: checks your PC, installs in order, writes your API key and proves it works. Portable, no admin rights.';
 ---
 
-<BaseLayout lang={lang} title={title} description={description}>
+<BaseLayout lang={lang} title={title} description={description} preloadLcp>
   <!-- ============ HERO（R2 超大字承担层级；主 CTA 绿底黑字） ============ -->
   <section class="mx-auto grid max-w-6xl items-center gap-10 px-5 pt-8 pb-16 md:grid-cols-[1.25fr_1fr] md:pt-14">
     <div>
@@ -47,9 +47,15 @@ const description =
     <div class="justify-self-center md:justify-self-end">
       <!-- 主视觉 = 标准 lockup（图标+字标整体品牌标记）；尺寸克制，禁卡片/渐变包裹 -->
       <picture>
-        <source srcset="/images/logo-lockup.webp" type="image/webp" />
+        <source
+          type="image/webp"
+          sizes="420px"
+          srcset="/images/logo-lockup-420.webp 420w, /images/logo-lockup.webp 840w"
+        />
         <img
           src="/images/logo-lockup.png"
+          srcset="/images/logo-lockup-420.png 420w, /images/logo-lockup.png 840w"
+          sizes="420px"
           alt={d.hero.logoAlt}
           width="840"
           height="838"
