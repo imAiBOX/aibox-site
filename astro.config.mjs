@@ -8,6 +8,8 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   // 静态输出：构建产物纯 HTML/CSS，直传 Cloudflare Pages（无 SSR 运行时）
   output: 'static',
+  // 内联样式表：消掉 render-blocking CSS 请求（模拟节流下省一个 RTT），字体也随 HTML 提前发现
+  build: { inlineStylesheets: 'always' },
   // 生产域做 canonical/hreflang/sitemap 规范（开发期在 pages.dev，域名后续接管）
   site: 'https://aibox.im',
   i18n: {

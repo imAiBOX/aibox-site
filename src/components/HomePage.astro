@@ -71,7 +71,7 @@ const description =
   <div class="mx-auto max-w-6xl px-5"><PixelRule length={32} every={4} /></div>
 
   <!-- ============ 3 步：竖向时间线（禁三等宽卡片阵列；完成态绿方点） ============ -->
-  <section class="mx-auto max-w-6xl px-5 py-14" id="steps">
+  <section class="cv-lazy mx-auto max-w-6xl px-5 py-14" id="steps">
     <h2 class="h-section m-0 mb-10">{d.steps.title}</h2>
     <ol class="relative m-0 list-none border-l border-aibox-line p-0 pl-10">
       {d.steps.items.map((step, i) => (
@@ -96,7 +96,7 @@ const description =
   </section>
 
   <!-- ============ 主推应用区（registry 真数据卡片 + I1 失败降级占位） ============ -->
-  <section class="mx-auto max-w-6xl px-5 py-14" id="apps">
+  <section class="cv-lazy mx-auto max-w-6xl px-5 py-14" id="apps">
     <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
         <h2 class="h-section m-0 mb-2">{d.catalog.title}</h2>

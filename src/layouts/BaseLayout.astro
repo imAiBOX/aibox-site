@@ -1,10 +1,10 @@
 ---
-// 只引 latin 子集（全子集 @font-face 44KB 拖 FCP/LCP；中文本就走系统字体回退）
-import '@fontsource/space-grotesk/latin-600.css';
-// 中文不加载 webfont（Noto Sans SC 分片 CSS 300KB+ 阻塞渲染，FCP 拖分）：
-// 字体族保留 'Noto Sans SC' 名（本机已装则用），否则回退系统黑体——设计规范允许的回退策略
-import '@fontsource/jetbrains-mono/latin-400.css';
-import '@fontsource/handjet/latin-400.css';
+// 只引 latin 子集 + font-display: optional（自写 @font-face，见 styles/fonts.css）
+import '../styles/fonts.css';
+// 字体 preload：与 HTML 并行，让 optional 字体尽量在短阻塞期内到位
+import sgWoff from '@fontsource/space-grotesk/files/space-grotesk-latin-600-normal.woff2?url';
+import monoWoff from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2?url';
+import handjetWoff from '@fontsource/handjet/files/handjet-latin-400-normal.woff2?url';
 import '../styles/global.css';
 import { t, langLabel, type Lang } from '../i18n/dict';
 
@@ -70,6 +70,9 @@ const websiteLd = {
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="preload" as="font" type="font/woff2" href={sgWoff} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={monoWoff} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={handjetWoff} crossorigin />
     <link rel="canonical" href={canonical} />
     <!-- hreflang：zh/en 互指（绝对地址，生产域规范） -->
     <link rel="alternate" hreflang="en" href={`${SITE}${path.replace(`/${lang}/`, '/en/')}`} />

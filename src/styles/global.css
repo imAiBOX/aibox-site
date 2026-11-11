@@ -321,3 +321,9 @@ html[lang='zh'] .prose-page h2 {
   color: var(--aibox-green);
   border-color: color-mix(in srgb, var(--aibox-green) 45%, transparent);
 }
+
+/* 首屏外大区块：跳过渲染（首渲染 layout/paint 是 LCP 关键路径，模拟 CPU×4 放大） */
+.cv-lazy {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}

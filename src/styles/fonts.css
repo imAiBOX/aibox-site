@@ -1,0 +1,24 @@
+/* 品牌字体 @font-face（与 @fontsource latin 子集同款文件）
+   font-display: optional —— 慢网络首屏直接用系统回退字形、不阻塞渲染/LCP；
+   快网络（含 preload）在短阻塞期内到位则正常显示，下个页面视图命中缓存。 */
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 600;
+  font-display: optional;
+  src: url('../../node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url('../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Handjet';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url('../../node_modules/@fontsource/handjet/files/handjet-latin-400-normal.woff2') format('woff2');
+}
