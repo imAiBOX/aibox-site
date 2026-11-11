@@ -50,7 +50,10 @@ const websiteLd = {
     <title>{title}</title>
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="canonical" href={canonical} />
     <!-- hreflang：zh/en 互指（绝对地址，生产域规范） -->
     <link rel="alternate" hreflang="en" href={`${SITE}${path.replace(`/${lang}/`, '/en/')}`} />
@@ -63,7 +66,14 @@ const websiteLd = {
     <meta property="og:site_name" content="AiBOX.im" />
     <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'en_US'} />
     <meta property="og:locale:alternate" content={lang === 'zh' ? 'en_US' : 'zh_CN'} />
-    <meta name="twitter:card" content="summary" />
+    <!-- OG 卡片：1200×630 黑底 + 标准 lockup（品牌位 = 图标+字标整体呈现） -->
+    <meta property="og:image" content={`${SITE}/og.png`} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="AiBOX.im" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={`${SITE}/og.png`} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
@@ -74,8 +84,9 @@ const websiteLd = {
     <div class="grain" aria-hidden="true"></div>
 
     <header class="relative mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-5">
-      <a href={`/${lang}/`} class="flex items-baseline gap-2 no-underline">
-        <span class="sq mb-1 bg-aibox-green" aria-hidden="true"></span>
+      <a href={`/${lang}/`} class="flex items-center gap-2.5 no-underline">
+        <!-- 导航小尺寸位 = 只用图标（字标在小尺寸不可读，用文字排版补） -->
+        <img src="/icon-192.png" width="32" height="32" alt="" class="h-8 w-8" decoding="async" />
         <span class="brand-pixel text-2xl text-aibox-cream">AiBOX.im</span>
         <span class="badge hidden sm:inline-flex">{d.brandSub}</span>
       </a>
@@ -97,7 +108,12 @@ const websiteLd = {
         {Array.from({ length: 16 }, (_, i) => <i class={i % 4 === 0 ? 'on' : ''}></i>)}
       </div>
 
-      <!-- 独立声明（页脚必须标注） -->
+      <!-- 页脚品牌区：icon-only 小图 + AiBOX.im 文字 + 独立声明 -->
+      <div class="mb-4 flex items-center gap-2.5">
+        <img src="/icon-192.png" width="28" height="28" alt="" class="h-7 w-7" loading="lazy" decoding="async" />
+        <span class="brand-pixel text-xl text-aibox-cream">AiBOX.im</span>
+      </div>
+
       <p class="mb-4 max-w-3xl text-sm text-aibox-cream">{d.footer.independent}</p>
 
       <div class="mb-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">

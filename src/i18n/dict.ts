@@ -25,7 +25,7 @@ const en = {
     cta: 'Download AiBOX',
     ctaHint: 'Windows · macOS · portable, nothing to install',
     secondary: 'Browse the app catalog',
-    botAlt: 'Pixel robot placeholder',
+    logoAlt: 'AiBOX.im logo — pixel robot face above the AiBOX.im wordmark',
   },
   steps: {
     title: 'Three steps. That is all.',
@@ -78,7 +78,7 @@ const zh: Dict = {
     cta: '下载 AiBOX',
     ctaHint: 'Windows · macOS · 绿色免安装',
     secondary: '先逛逛应用目录',
-    botAlt: '像素机器人占位图',
+    logoAlt: 'AiBOX.im 标志——像素方块脸在上、AiBOX.im 字标在下',
   },
   steps: {
     title: '一共三步。',
