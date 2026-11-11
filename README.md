@@ -1,19 +1,24 @@
-# aibox-site — AiBOX.im 官网
+# aibox-site — AiBOX.im website
 
-AiBOX.im（中文名：智能盒子）的官方网站源码。**Astro 5 + Tailwind CSS 4 静态输出，默认零 JS**，
-构建产物直传 Cloudflare Pages：i18n 双首页 + VI 绿色系 + registry 构建时拉取。
+Official website source for **AiBOX.im**. **Astro 5 + Tailwind CSS 4, static output, zero JS by default**;
+build artifacts are uploaded straight to Cloudflare Pages: bilingual routes (`/en/`, `/zh/`),
+brand-green VI, and the app catalog pulled from `aibox-registry` at build time.
 
-## 部署（Cloudflare Pages）
+**English | [简体中文](README.zh-CN.md)**
 
-- CI：`.github/workflows/deploy.yml`，**仓库内零凭据**，凭据在 GitHub Secrets：
-  - `CF_API_TOKEN`（CF 账户级令牌）、`CF_ACCOUNT_ID`
-- 触发链：
+## Deployment (Cloudflare Pages)
+
+- CI: `.github/workflows/deploy.yml`, **zero credentials in the repo** — secrets live in GitHub Secrets:
+  `CF_API_TOKEN` (account-level token) and `CF_ACCOUNT_ID`.
+- Triggers:
   1. `push main` → `pnpm install && pnpm build` → `npx --yes wrangler@4.62.0 pages deploy dist --project-name=aibox-site --branch=main`
-  2. `repository_dispatch: registry-updated` → 同部署（registry 仓 push 后发此事件，重建拉最新数据）
-  3. `schedule` 每日一次（UTC 03:47）兜底重建 —— Pages 构建 500 次/月配额，日 1 次 ≈30/月，安全
-  4. `workflow_dispatch` 手动触发
-- 部署项目名：**`aibox-site`**，预览域名：**`https://aibox-site.pages.dev`**
-- 本地手动部署（等价 CI，token 只经环境变量注入，不入库）：
+  2. `repository_dispatch: registry-updated` → same deploy (fired when the registry repo pushes, so the
+     site always rebuilds against fresh data)
+  3. `schedule` daily (UTC 03:47) as a safety net — Pages build quota is 500/month, ~30/month used
+  4. `workflow_dispatch` for manual runs
+- Project name: **`aibox-site`**; reachable at **`https://aibox.im`** (custom domain connected) and
+  **`https://aibox-site.pages.dev`** (preview).
+- Local deploy (equivalent to CI; token only via environment variables, never committed):
 
   ```bash
   pnpm install && pnpm build
@@ -21,54 +26,61 @@ AiBOX.im（中文名：智能盒子）的官方网站源码。**Astro 5 + Tailwi
     npx --yes wrangler@4.62.0 pages deploy dist --project-name=aibox-site --branch=main
   ```
 
-> 红线：**本阶段绝不绑 aibox.im 自定义域名**，只用 `*.pages.dev`（域名后续接管）。
+## Quality gates (CI `quality` job)
 
-## i18n 约定
+- **Bilingual route parity**: `node scripts/check-routes.mjs` — every `/en/…` page must have a `/zh/…`
+  twin and vice versa.
+- **Lighthouse** (desktop preset, official throttling, median of 3 runs): performance ≥ 0.95,
+  accessibility ≥ 0.90, SEO ≥ 0.90 — assertions in `lighthouserc.json`.
+- **Sanitization scan**: `scripts/prepush-scan.mjs --history` (credentials + internal-document patterns).
 
-- **前缀式路由**：`/en/`、`/zh/`，**默认 en**（Astro `i18n.routing.prefixDefaultLocale: true`）
-- **根路径 `/` 分流**：
-  - 首选 `functions/index.ts`（CF Pages Function）读 `Accept-Language` → 302 到 `/zh/` 或 `/en/`（en 兜底）
-  - 兜底 `src/pages/index.astro` 纯静态 meta refresh → `/en/`（零 JS，Function 失效也不 404）
-- 文案字典：`src/i18n/dict.ts`（**en 为基线语言，key 必须齐全**；zh 缺 key 时结构与 en 对齐）
-- 页面 `lang` 属性、hreflang（`en` / `zh` / `x-default`）随语言输出；语言切换按钮在页头
-- 远期：语言包 registry 化，加语言 = 一个 PR、零发版；先站内字典
-- 排版规则：中文行高 1.7 / 西文 1.55，中文正文 ≥16px
+## i18n conventions
 
-## 与 aibox-registry 的数据流
+- **Prefixed routes**: `/en/`, `/zh/`, **English is the default** (Astro `prefixDefaultLocale: true`).
+- **Root path `/`**: CF Pages Function `functions/index.ts` → 302 to `/en/` (English-first product
+  policy; Chinese is opt-in via the header language switch). Static fallback `src/pages/index.astro`
+  meta-refreshes to `/en/` (zero JS, never 404s).
+- Copy dictionary: `src/i18n/dict.ts` (English baseline, all keys required; zh keeps key parity —
+  enforced by CI). Page `lang` + hreflang (`en` / `zh` / `x-default`) emitted per locale; the language
+  switch lives in the page header.
+- Long term: locale packs move into the registry — adding a language becomes one PR, zero releases.
+
+## Data flow from aibox-registry
 
 ```
-aibox-registry (GitHub, 唯一 SSOT)
-   │  push → Actions → repository_dispatch: registry-updated → 本仓重建
+aibox-registry (GitHub, single source of truth)
+   │  push → Actions → repository_dispatch: registry-updated → this repo rebuilds
    ▼
-构建时 fetch https://raw.githubusercontent.com/imAiBOX/aibox-registry/main/index.json
-   （备源 jsDelivr；任何失败 → 内置占位数据，构建绝不炸，src/data/registry.ts）
+build-time fetch of index.json + app detail (raw.githubusercontent, jsDelivr fallback;
+   any failure → built-in placeholder data, the build never breaks — src/data/registry.ts)
    ▼
-静态 HTML（首页「应用目录」区：名称/难度/平台/状态徽章）→ Cloudflare Pages
+static HTML (catalog cards: name / difficulty / platforms / status) → Cloudflare Pages
 ```
 
-- 数据形态容错：`{apps:[…]}` / `{apps:{id:{…}}}` / 顶层数组 / 字符串条目均可解析
-- 页面上有数据源徽章：`live · from registry` 或 `placeholder · registry unavailable`
+- The page shows a source badge: `live · from registry` or `placeholder · registry unavailable`.
 
-## VI（唯一权威色板）
+## VI (authoritative palette)
 
-- 色板 token 见 `src/styles/global.css`（`--aibox-*`）：黑底 `#0A0A0A`、主绿 `#B6FB50`、米白 `#FBF6E2`…
-- CTA = 绿底黑字；字体 Space Grotesk / Noto Sans SC / JetBrains Mono，像素风 Handjet **仅品牌字标**
-- 母题 = 像素圆角方块（loading / bullet / 分区分隔线 / 状态方块点）
-- 反模板铁律：禁渐变横幅、三等宽卡片阵列、玻璃拟态、12px+ 大圆角；超大字承担层级；情绪 =「可靠的工具箱」
+- Tokens in `src/styles/global.css` (`--aibox-*`): near-black `#0A0A0A`, brand green `#B6FB50`,
+  cream `#FBF6E2` …; CTA = green background with black text.
+- Type: Space Grotesk / Noto Sans SC (system fallback) / JetBrains Mono; pixel font Handjet **only
+  for the brand wordmark**.
+- Motif = rounded pixel squares (loading, bullets, section dividers, status dots).
+- Anti-template rules: no gradient banners, no three-equal card grids, no glassmorphism, radius ≤ 4px;
+  oversized type carries hierarchy; mood = “a reliable toolbox”.
 
-## 开发
+## Development
 
 ```bash
-pnpm install     # pnpm 11（构建脚本白名单见 pnpm-workspace.yaml）
+pnpm install     # pnpm 11 (build-script allowlist lives in pnpm-workspace.yaml)
 pnpm dev         # Astro dev server
-pnpm build       # → dist/（静态）
+pnpm build       # → dist/ (static) + dist/meta/* registry snapshots (aibox.im/meta channel)
+node scripts/check-routes.mjs   # bilingual parity check
 ```
 
-## 待办（本站）
+## TODO
 
-- [ ] 绑定 `aibox.im` 自定义域名 + `www` 301（zone 已在新 CF 账号；域名接管点在后续阶段）
-- [ ] `astro.config.mjs` 补 `site:`（canonical / sitemap 依赖）
-- [ ] 下载按钮真岛化：`client:load` + 运行时 fetch GitHub Releases latest（5 分钟缓存）
-- [ ] `/apps/` 目录页与应用落地页（JSON-LD、SEO 主力页）
-- [ ] 完整内容填充（hero 配图、教程、FAQ、隐私页）
-- [ ] hreflang 换绝对地址（绑域名后）
+- [ ] `www.aibox.im` → apex 301 redirect rule (created in the Cloudflare dashboard; token lacks Page-Rules permission)
+- [ ] Email Routing: verify destination address + forward `hi@` / `support@` (dashboard; current catch-all drops mail)
+- [ ] Download button island: runtime fetch of GitHub Releases latest (5-minute cache) — snapshot fallback is in place
+- [ ] Content expansion: per-app tutorials, screenshots, blog
