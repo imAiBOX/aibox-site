@@ -2,17 +2,55 @@
   "ci": {
     "collect": {
       "staticDistDir": "dist",
-      "url": ["/en/", "/zh/", "/en/apps/openclaw/", "/zh/download/"],
-      "numberOfRuns": 1,
-      "settings": { "formFactor": "desktop", "screenEmulation": { "width": 1350, "height": 940, "deviceScaleFactor": 1, "mobile": false } }
+      "url": [
+        "/en/",
+        "/zh/",
+        "/en/apps/openclaw/",
+        "/zh/download/"
+      ],
+      "numberOfRuns": 3,
+      "settings": {
+        "formFactor": "desktop",
+        "screenEmulation": {
+          "width": 1350,
+          "height": 940,
+          "deviceScaleFactor": 1,
+          "mobile": false
+        },
+        "throttling": {
+          "rttMs": 40,
+          "throughputKbps": 10240,
+          "cpuSlowdownMultiplier": 1,
+          "requestLatencyMs": 200,
+          "downloadThroughputKbps": 10240,
+          "uploadThroughputKbps": 10240
+        }
+      }
     },
     "assert": {
       "assertions": {
-        "categories:performance": ["error", { "minScore": 0.95 }],
-        "categories:accessibility": ["error", { "minScore": 0.9 }],
-        "categories:seo": ["error", { "minScore": 0.9 }]
+        "categories:performance": [
+          "error",
+          {
+            "minScore": 0.95
+          }
+        ],
+        "categories:accessibility": [
+          "error",
+          {
+            "minScore": 0.9
+          }
+        ],
+        "categories:seo": [
+          "error",
+          {
+            "minScore": 0.9
+          }
+        ]
       }
     },
-    "upload": { "target": "temporary-public-storage" }
+    "upload": {
+      "target": "temporary-public-storage"
+    }
   }
 }
