@@ -46,14 +46,19 @@ const description =
 
     <div class="justify-self-center md:justify-self-end">
       <!-- 主视觉 = 标准 lockup（图标+字标整体品牌标记）；尺寸克制，禁卡片/渐变包裹 -->
-      <img
-        src="/images/logo-lockup.png"
-        alt={d.hero.logoAlt}
-        width="420"
-        height="420"
-        decoding="async"
-        class="block w-full max-w-[420px]"
-      />
+      <picture>
+        <source srcset="/images/logo-lockup.webp" type="image/webp" />
+        <img
+          src="/images/logo-lockup.png"
+          alt={d.hero.logoAlt}
+          width="840"
+          height="838"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          class="block w-full max-w-[420px]"
+        />
+      </picture>
     </div>
   </section>
 
