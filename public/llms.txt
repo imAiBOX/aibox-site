@@ -1,0 +1,33 @@
+# AiBOX.im
+
+> AiBOX — Installed until it works. A portable desktop installer and maintenance companion for Windows and macOS that takes popular AI apps from download to a working, verified setup — no terminal, no admin prompts.
+
+AiBOX.im is the official website for the AiBOX desktop app (open source, English default with Chinese available). It publishes the app catalog, step-by-step setup guides, downloads with SHA256 checksums, and a read-only data API that mirrors the GitHub registry.
+
+## Key pages
+
+- [Home (English)](https://aibox.im/en/): product overview and 3-step quick start
+- [Home (中文)](https://aibox.im/zh/): 中文首页
+- [Download](https://aibox.im/en/download/): portable Windows build, SHA256, SmartScreen guide
+- [App catalog](https://aibox.im/en/apps/): every app AiBOX can install, with difficulty and platform badges
+- [OpenClaw setup guide](https://aibox.im/en/apps/openclaw/): install tutorial + model API-key configuration (six provider paths)
+- [FAQ](https://aibox.im/en/faq/) · [Network self-check](https://aibox.im/en/guides/network-selfcheck/) · [SmartScreen guide](https://aibox.im/en/guides/smartscreen/)
+- [Privacy](https://aibox.im/en/privacy/) · [About](https://aibox.im/en/about/)
+
+## Data & API (for AI agents)
+
+- Catalog snapshot: [GET /meta/index.json](https://aibox.im/meta/index.json) · per-app: `/meta/apps/{id}.json` · locales: `/meta/locales/{lang}.json` (mirrors the GitHub registry, rebuilt on every registry push)
+- Machine-readable site summary: [llms.txt](https://aibox.im/llms.txt) · [agents.md](https://aibox.im/agents.md) · [OpenAPI](https://aibox.im/openapi.json)
+- MCP endpoint (read-only): `POST https://aibox.im/mcp` — tool `get_aibox_info`
+- Source of truth: [github.com/imAiBOX/aibox-registry](https://github.com/imAiBOX/aibox-registry) (also via jsDelivr and raw.githubusercontent.com)
+
+## Downloads
+
+- Latest desktop release: https://github.com/imAiBOX/aibox-app/releases/latest (`AiBOX-vX.Y.Z-windows-x64.exe`, portable, no installer)
+- Source code: [aibox-app](https://github.com/imAiBOX/aibox-app) · [aibox-site](https://github.com/imAiBOX/aibox-site) · [aibox-registry](https://github.com/imAiBOX/aibox-registry)
+
+## Notes
+
+- Default language is English; Chinese is available at /zh/ (site) and via the in-app language switch.
+- AiBOX is an independent community project and is not affiliated with the official apps listed in the catalog.
+- Contact: open an issue at https://github.com/imAiBOX/aibox-app/issues

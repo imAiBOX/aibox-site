@@ -85,5 +85,8 @@ jobs:
       - name: Check zh/en route parity
         run: node scripts/check-routes.mjs
 
+      - name: MCP endpoint unit tests (node --test)
+        run: node --test functions/mcp.test.mjs
+
       - name: Lighthouse (desktop, assertions in lighthouserc.json)
         run: pnpm exec lhci autorun

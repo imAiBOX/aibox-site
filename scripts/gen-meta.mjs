@@ -102,4 +102,22 @@ for (const lang of ['en', 'zh-CN']) {
   write(rel, text);
 }
 
+
+// sitemap: @astrojs/sitemap 产 index+分片；复制分片为惯例单文件（robots.txt 引用的 /sitemap.xml）
+try {
+  const { readFileSync, copyFileSync, existsSync } = await import('node:fs');
+  const shard = new URL('../dist/sitemap-0.xml', import.meta.url);
+  const out = new URL('../dist/sitemap.xml', import.meta.url);
+  if (existsSync(shard)) {
+    copyFileSync(shard, out);
+    const xml = readFileSync(out, 'utf8');
+    if (!xml.includes('https://aibox.im/')) throw new Error('sitemap.xml missing production URLs');
+    console.log('[gen-meta] sitemap.xml written (single-file)');
+  } else {
+    console.warn('[gen-meta] warn: sitemap-0.xml not found — skipped sitemap.xml');
+  }
+} catch (e) {
+  console.warn('[gen-meta] warn: sitemap finalize failed —', e.message);
+}
+
 console.log(`[gen-meta] done — index + ${ids.length} app(s) + locales under ${DIST_META}`);
