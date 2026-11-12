@@ -4,7 +4,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PixelRule from '../components/PixelRule.astro';
 import AppCard from '../components/AppCard.astro';
-import { fetchRegistry, LANDING_APP_IDS } from '../data/registry';
+import { fetchRegistry, landingHref } from '../data/registry';
 import { t, type Lang } from '../i18n/dict';
 
 interface Props {
@@ -117,7 +117,7 @@ const description =
             app={app}
             lang={lang}
             live={registry.live}
-            href={LANDING_APP_IDS.includes(app.id) ? `/${lang}/apps/${app.id}/` : undefined}
+            href={landingHref(lang, app.id)}
           />
         ))}
       </div>

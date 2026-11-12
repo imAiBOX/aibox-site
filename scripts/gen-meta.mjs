@@ -91,6 +91,33 @@ for (const id of ids) {
   write(rel, text);
 }
 
+// 应用图标 → dist/images/apps/<id>.png（模板化落地页 hero 用；失败仅告警跳过，不炸）
+async function fetchBin(rel) {
+  for (const url of SOURCES.map((f) => f(rel))) {
+    try {
+      const res = await fetch(url, { headers: { accept: 'image/png' }, signal: AbortSignal.timeout(8000) });
+      if (!res.ok) continue;
+      const buf = Buffer.from(await res.arrayBuffer());
+      if (buf.length > 1024) return buf;
+    } catch {
+      // 换下一个源
+    }
+  }
+  return null;
+}
+
+for (const id of ids) {
+  const buf = await fetchBin(`icons/${id}.png`);
+  if (buf === null) {
+    console.warn(`[gen-meta] warn: icons/${id}.png unavailable — skipped`);
+    continue;
+  }
+  const p = join('dist', 'images', 'apps', `${id}.png`);
+  mkdirSync(dirname(p), { recursive: true });
+  writeFileSync(p, buf);
+  console.log(`[gen-meta] images/apps/${id}.png (${buf.length} B)`);
+}
+
 // 语言包（registry 语言包热加载用；缺失语言由安装器回退内置）
 for (const lang of ['en', 'zh-CN']) {
   const rel = `locales/${lang}.json`;

@@ -5,7 +5,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import AppCard from '../../components/AppCard.astro';
 import PixelRule from '../../components/PixelRule.astro';
-import { fetchRegistry, LANDING_APP_IDS, type RegistryApp } from '../../data/registry';
+import { fetchRegistry, landingHref, taglineFor, type RegistryApp } from '../../data/registry';
 import { pt, type Lang } from '../../i18n/pages';
 
 interface Props {
@@ -28,8 +28,6 @@ for (const app of registry.apps) {
   g.apps.push(app);
 }
 
-const landingHref = (id: string) => (LANDING_APP_IDS.includes(id) ? `/${lang}/apps/${id}/` : undefined);
-
 const title = lang === 'zh' ? '应用目录 - AiBOX 能帮你装的 AI 工具 | aibox.im' : 'App catalog - AI tools AiBOX can install for you | aibox.im';
 const description =
   lang === 'zh'
@@ -50,19 +48,46 @@ const description =
       </span>
     </div>
 
+    <!-- 搜索（原生 input + 内联防抖 150ms，零框架零依赖） -->
+    {
+      registry.apps.length > 0 && (
+        <div class="mb-8 flex flex-wrap items-center gap-3">
+          <input
+            type="search"
+            data-app-search
+            placeholder={c.searchPlaceholder}
+            aria-label={c.searchPlaceholder}
+            class="w-full max-w-md border border-aibox-line bg-aibox-raised px-4 py-3 text-base text-aibox-cream outline-none focus:border-aibox-green"
+            style="border-radius:4px"
+          />
+          <button type="button" data-app-clear class="btn-ghost" style="display:none">
+            {c.clear}
+          </button>
+          <p data-app-empty class="m-0 text-sm text-aibox-text2" style="display:none">
+            {c.noMatches}
+          </p>
+        </div>
+      )
+    }
+
     {registry.apps.length === 0 ? (
       <p class="border border-dashed border-aibox-line p-6 text-aibox-text2" style="border-radius:4px">{c.empty}</p>
     ) : (
       groups.map((g) => (
-        <div class="mb-12 last:mb-0">
-          <div class="mb-4 flex items-center gap-3">
+        <div class="mb-12 last:mb-0" data-group>
+          <div class="mb-4 flex items-center gap-3" data-group-head>
             <span class="sq bg-aibox-green" aria-hidden="true"></span>
             <h2 class="m-0 font-[family-name:var(--font-display)] text-2xl font-semibold text-aibox-cream">{g.label}</h2>
             <span class="badge">{g.apps.length}</span>
           </div>
           <div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
             {g.apps.map((app) => (
-              <AppCard app={app} lang={lang} live={registry.live} href={landingHref(app.id)} />
+              <div
+                class="h-full"
+                data-app={`${app.id} ${app.name} ${taglineFor(app, lang) ?? app.summary ?? ''} ${g.label} ${app.status ?? ''}`.toLowerCase()}
+              >
+                <AppCard app={app} lang={lang} live={registry.live} href={landingHref(lang, app.id)} />
+              </div>
             ))}
           </div>
         </div>
@@ -82,4 +107,42 @@ const description =
       </a>
     </div>
   </section>
+
+  <!-- 搜索脚本：150ms 防抖过滤；命中时隐藏分组标题（扁平结果），零依赖 -->
+  <script>
+    const input = document.querySelector<HTMLInputElement>('[data-app-search]');
+    const clearBtn = document.querySelector<HTMLButtonElement>('[data-app-clear]');
+    const empty = document.querySelector<HTMLElement>('[data-app-empty]');
+
+    if (input) {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const run = () => {
+        const q = input.value.trim().toLowerCase();
+        const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-app]'));
+        let hits = 0;
+        for (const card of cards) {
+          const match = !q || (card.dataset.app ?? '').includes(q);
+          card.style.display = match ? '' : 'none';
+          if (q && match) hits++;
+        }
+        for (const group of document.querySelectorAll<HTMLElement>('[data-group]')) {
+          const visible = Array.from(group.querySelectorAll<HTMLElement>('[data-app]')).some((el) => el.style.display !== 'none');
+          group.style.display = visible ? '' : 'none';
+          const head = group.querySelector<HTMLElement>('[data-group-head]');
+          if (head) head.style.display = q ? 'none' : '';
+        }
+        if (clearBtn) clearBtn.style.display = q ? '' : 'none';
+        if (empty) empty.style.display = q && hits === 0 ? '' : 'none';
+      };
+      input.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(run, 150);
+      });
+      clearBtn?.addEventListener('click', () => {
+        input.value = '';
+        run();
+        input.focus();
+      });
+    }
+  </script>
 </BaseLayout>

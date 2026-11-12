@@ -13,8 +13,10 @@ export type RegistryApp = {
   tagline?: Record<string, string>;
 };
 
-/** 有独立落地页的应用 id（新增落地页时在此登记，卡片才挂链接避免 404） */
-export const LANDING_APP_IDS = ['openclaw'];
+/** 应用落地页链接：所有 index 内应用都有模板化落地页（openclaw 为手写页，同路由） */
+export function landingHref(lang: string, id: string): string {
+  return `/${lang}/apps/${id}/`;
+}
 
 // 内置占位（与并行 registry 任务的 openclaw/hermes-agent 对齐，字段仅作展示）
 const FALLBACK_APPS: RegistryApp[] = [
@@ -119,8 +121,10 @@ export type AppDetail = {
   updatedAt?: string;
   /** 本地化描述：{ 'zh-CN': ..., en: ... } */
   description?: Record<string, string>;
-  runtime?: { node?: { recommended?: string; supported?: string; disallowed?: string[]; note?: string } };
+  runtime?: { bundled?: boolean; node?: { recommended?: string; supported?: string; disallowed?: string[]; note?: string } };
   configTarget?: string;
+  /** 数据/配置留存路径（maintenance.dataPaths），FAQ「数据在哪」用 */
+  dataPaths?: string[];
   providers?: AppProvider[];
   upstreamGithub?: { repo: string; tag: string }[];
   upstreamNpm?: { name: string; version: string };
@@ -190,7 +194,8 @@ function parseDetail(id: string, raw: unknown): AppDetail | null {
     disallowed,
     note: typeof nodeRaw.note === 'string' ? nodeRaw.note : typeof rt.note === 'string' ? rt.note : undefined,
   };
-  const runtime = node.recommended || node.supported || node.disallowed ? { node } : undefined;
+  const bundled = rt.bundled === true || /not required/i.test(node.recommended ?? '');
+  const runtime = node.recommended || node.supported || node.disallowed || bundled ? { bundled, node } : undefined;
 
   let providers: AppProvider[] | undefined;
   if (o.modelProviders && typeof o.modelProviders === 'object' && !Array.isArray(o.modelProviders)) {
@@ -236,6 +241,7 @@ function parseDetail(id: string, raw: unknown): AppDetail | null {
     description,
     runtime,
     configTarget,
+    dataPaths,
     providers,
     upstreamGithub,
     upstreamNpm,

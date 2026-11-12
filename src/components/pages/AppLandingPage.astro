@@ -1,0 +1,544 @@
+---
+// 通用应用落地页（模板化）：registry index + app.json + guides/*.md 三源驱动
+// 结构对齐 OpenClawPage 视觉体系（h-section/panel/badge/btn-cta/step-num/pixel-rule），
+// 所有 registry 应用自动出页（openclaw 为手写页，动态路由已排除）
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PixelRule from '../../components/PixelRule.astro';
+import { fetchAppDetail, fetchRegistry, taglineFor } from '../../data/registry';
+import { fetchAppGuides } from '../../data/guides';
+import { renderMd } from '../../lib/renderMd';
+import { pt, type Lang } from '../../i18n/pages';
+
+interface Props {
+  lang: Lang;
+  id: string;
+}
+const { lang, id } = Astro.props;
+const c = pt(lang).landing;
+
+const [registry, detail, guides] = await Promise.all([fetchRegistry(), fetchAppDetail(id), fetchAppGuides(id)]);
+const app = registry.apps.find((a) => a.id === id) ?? { id, name: detail.name };
+const appName = app.name || detail.name || id;
+
+// —— 徽章数据（与 /apps/ 卡片同一数据源：registry index）——
+const platformName: Record<string, string> = { win: 'Windows', windows: 'Windows', mac: 'macOS', macos: 'macOS', darwin: 'macOS', linux: 'Linux' };
+const platforms = (app.platforms ?? []).map((p) => platformName[p.toLowerCase()] ?? p);
+const level = app.difficulty ?? 0;
+const statusRaw = (app.status ?? 'preview').toLowerCase();
+const statusCls = ['stable', 'available', 'ready', 'installable'].includes(statusRaw) ? 'badge-ok' : ['preview', 'building', 'experimental'].includes(statusRaw) ? 'badge-info' : '';
+
+const tagline = taglineFor(app, lang) ?? (lang === 'zh' ? detail.description?.['zh-CN'] : detail.description?.en) ?? app.summary ?? '';
+
+// —— 教程正文（本语言版本；空 → 占位）——
+const guideMd = lang === 'zh' ? guides.zh : guides.en;
+const guideHtml = guideMd ? renderMd(guideMd) : '';
+
+// —— 需求面板 ——
+const node = detail.runtime?.node;
+const bundled = detail.runtime?.bundled === true;
+const showNodeRows = !bundled && !!node && (!!node.recommended || !!node.supported);
+const dataPaths = detail.dataPaths ?? (detail.configTarget ? [detail.configTarget] : []);
+const configTarget = detail.configTarget ?? dataPaths[0];
+
+// —— 通用文案填充（{name}/{platforms}/{difficulty}/{dataPaths}）——
+const dataPathsText = dataPaths.length ? dataPaths.join(' / ') : (lang === 'zh' ? '应用自己的文件夹' : 'the app’s own folder');
+const fill = (s: string): string =>
+  s
+    .replaceAll('{name}', appName)
+    .replaceAll('{platforms}', platforms.length ? platforms.join(' / ') : (lang === 'zh' ? 'Windows / macOS' : 'Windows / macOS'))
+    .replaceAll('{difficulty}', String(level))
+    .replaceAll('{dataPaths}', dataPathsText);
+
+const steps = c.install.steps.map((s) => ({ t: fill(s.t), d: fill(s.d), cta: s.cta }));
+const faqItems = c.faq.items.map((item) => ({ q: fill(item.q), a: fill(item.a), link: 'link' in item ? item.link : undefined }));
+
+// —— 模型配置（detail.providers 数据驱动；空则整节隐藏）——
+const providers = detail.providers ?? [];
+const providerName = (pid: string): string => (c.providers.names as Record<string, string>)[pid] ?? pid;
+const providerAuth = (p: { authType?: string }): string =>
+  p.authType === 'local' ? c.providers.local : p.authType === 'oauth' ? c.providers.oauth : c.providers.apiKey;
+
+// —— SEO ——
+const title = lang === 'zh' ? `${appName} 安装教程 - 不会命令行也能装好 | aibox.im` : `${appName} install & setup guide | aibox.im`;
+const description =
+  lang === 'zh'
+    ? `${appName} 中文安装教程：三步装好，${tagline || '系统要求、模型配置、常见问题都在这一页。'}`
+    : `${appName} install guide: three steps to set it up — ${tagline || 'system requirements, model setup and FAQ on one page.'}`;
+
+// —— JSON-LD ①：SoftwareApplication ——
+const CATEGORY_LD: Record<string, string> = {
+  agent: 'BusinessApplication',
+  chat: 'SocialNetworkingApplication',
+  'local-llm': 'DeveloperApplication',
+  coding: 'DeveloperApplication',
+  devtool: 'DeveloperApplication',
+  knowledge: 'EducationalApplication',
+  media: 'EntertainmentApplication',
+  automation: 'UtilitiesApplication',
+  productivity: 'ProductivityApplication',
+  utility: 'UtilitiesApplication',
+  other: 'UtilitiesApplication',
+};
+const softwareLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: appName,
+  description: tagline || description,
+  applicationCategory: (app.category && CATEGORY_LD[app.category]) || 'UtilitiesApplication',
+  softwareCategory: app.category ?? undefined,
+  operatingSystem: platforms.length ? platforms.join(', ') : 'Windows, macOS',
+  softwareVersion: detail.version ?? undefined,
+  url: `https://aibox.im/${lang}/apps/${id}/`,
+  inLanguage: [lang, 'zh', 'en'],
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', description: 'Free and open source' },
+};
+
+// —— JSON-LD ②：FAQPage（与页面可见 FAQ 同一份文案）——
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqItems.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+
+const feedbackUrl = 'https://github.com/imAiBOX/aibox-app/issues';
+---
+
+<BaseLayout lang={lang} title={title} description={description} jsonLd={[softwareLd, faqLd]}>
+  <!-- ============ HERO：超大应用名 + tagline + 徽章 + 图标 ============ -->
+  <section class="mx-auto grid max-w-6xl items-center gap-10 px-5 pt-8 pb-14 md:grid-cols-[1.35fr_1fr] md:pt-14">
+    <div>
+      <div class="mb-6 flex items-center gap-3">
+        <span class="sq bg-aibox-green" aria-hidden="true"></span>
+        <a href={`/${lang}/apps/`} class="font-mono text-xs tracking-widest text-aibox-text2 no-underline hover:text-aibox-green">
+          {c.hero.eyebrow} / {appName}
+        </a>
+      </div>
+
+      <h1 class="m-0 text-aibox-cream" style="font-family:var(--font-display);font-weight:600;font-size:clamp(48px,9vw,104px);line-height:1.02;letter-spacing:-0.03em">
+        {appName}
+      </h1>
+
+      {tagline && <p class="mt-6 max-w-xl text-lg text-aibox-text2">{tagline}</p>}
+
+      <div class="mt-6 flex flex-wrap items-center gap-2">
+        {platforms.map((p) => <span class="badge">{p}</span>)}
+        <span class="badge" title={`${level}/5`}>
+          <span class="text-aibox-text2">{lang === 'zh' ? '难度' : 'Difficulty'}</span>
+          {
+            Array.from({ length: 5 }, (_, i) => (
+              <span style={`color:${i < level ? 'var(--aibox-green)' : 'var(--aibox-line)'}`}>{i < level ? '●' : '○'}</span>
+            ))
+          }
+        </span>
+        <span class={`badge ${statusCls}`}>{statusRaw}</span>
+        {detail.version && <span class="badge badge-info">v{detail.version}</span>}
+        {!detail.live && <span class="badge">{c.requirements.placeholder}</span>}
+      </div>
+
+      <div class="mt-8 flex flex-wrap items-center gap-6">
+        <a class="btn-cta no-underline" href={`/${lang}/download/`}>
+          <span>{c.hero.cta}</span>
+          <span class="mono" aria-hidden="true">↓</span>
+        </a>
+        <a class="btn-ghost" href="#requirements">{c.hero.jumpReq} ↓</a>
+        <a class="btn-ghost" href="#guide">{c.hero.jumpGuide} ↓</a>
+      </div>
+    </div>
+
+    <!-- 图标位：registry icons/<id>.png（构建时镜像到 /images/apps/），失败回退 icon-64 -->
+    <div class="justify-self-center md:justify-self-end">
+      <div
+        class="flex items-center justify-center border border-aibox-line bg-aibox-raised"
+        style="border-radius:4px;width:min(320px,70vw);aspect-ratio:1/1;box-shadow:8px 8px 0 var(--aibox-line)"
+      >
+        <img
+          src={`/images/apps/${id}.png`}
+          alt={`${appName} icon`}
+          width="240"
+          height="240"
+          decoding="async"
+          style="width:72%;height:auto;object-fit:contain"
+          onerror="this.onerror=null;this.src='/images/icon-64.png'"
+        />
+      </div>
+      <p class="mt-3 text-center font-mono text-xs text-aibox-text2">{appName} · {c.hero.iconNote}</p>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-6xl px-5"><PixelRule length={32} every={4} /></div>
+
+  <!-- ============ 系统要求（runtime 真数据 + config/dataPaths） ============ -->
+  <section class="mx-auto max-w-6xl px-5 py-14" id="requirements">
+    <h2 class="h-section m-0 mb-8">{c.requirements.heading}</h2>
+
+    <div class="grid gap-6 md:grid-cols-2">
+      <div class="panel">
+        <h3 class="m-0 mb-3 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">
+          {showNodeRows ? c.requirements.nodeH : c.requirements.bundledH}
+        </h3>
+        {
+          showNodeRows ? (
+            <dl class="m-0 grid gap-2 text-sm">
+              {node?.recommended && (
+                <div class="flex items-center justify-between gap-3">
+                  <dt class="text-aibox-text2">{c.requirements.rec}</dt>
+                  <dd class="m-0 font-mono text-aibox-cream">Node {node.recommended}</dd>
+                </div>
+              )}
+              {node?.supported && (
+                <div class="flex items-center justify-between gap-3">
+                  <dt class="text-aibox-text2">{c.requirements.ok}</dt>
+                  <dd class="m-0 font-mono text-aibox-cream">Node {node.supported}</dd>
+                </div>
+              )}
+              {node?.disallowed && (
+                <div class="flex items-center justify-between gap-3">
+                  <dt class="text-aibox-text2">{c.requirements.bad}</dt>
+                  <dd class="m-0 font-mono text-aibox-danger">{node.disallowed.join(' / ')}</dd>
+                </div>
+              )}
+            </dl>
+          ) : (
+            <p class="m-0 text-aibox-text2">{c.requirements.bundled}</p>
+          )
+        }
+        {showNodeRows && (
+          <p class="mt-4 mb-0 border-l-2 border-aibox-green pl-3 text-sm text-aibox-text1">{c.requirements.nodeNote}</p>
+        )}
+      </div>
+
+      <div class="panel">
+        <h3 class="m-0 mb-3 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{c.requirements.osH}</h3>
+        <div class="flex flex-wrap gap-2">
+          {(platforms.length ? platforms : ['Windows', 'macOS']).map((p) => <span class="badge badge-green">{p}</span>)}
+        </div>
+        {tagline && <p class="mt-4 mb-0 text-sm text-aibox-text2">{tagline}</p>}
+        {
+          detail.updatedAt && (
+            <p class="mt-4 mb-0 font-mono text-xs text-aibox-text2">
+              {c.requirements.updatedH}: {detail.updatedAt.slice(0, 10)}
+            </p>
+          )
+        }
+      </div>
+
+      {
+        (configTarget || dataPaths.length > 0) && (
+          <div class="panel md:col-span-2">
+            <h3 class="m-0 mb-3 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{c.requirements.dataH}</h3>
+            {configTarget && (
+              <>
+                <p class="m-0 mb-1 text-sm text-aibox-text2">{c.requirements.configH}</p>
+                <p class="mono-block m-0 mb-3 break-all border border-aibox-line bg-aibox-bg p-3" style="border-radius:4px">
+                  {configTarget}
+                </p>
+              </>
+            )}
+            {dataPaths.length > 0 && (
+              <ul class="pixel-list m-0 mb-3 p-0 font-mono text-sm text-aibox-text1">
+                {dataPaths.map((p) => (
+                  <li class="mb-1">{p}</li>
+                ))}
+              </ul>
+            )}
+            <p class="m-0 border-l-2 border-aibox-green pl-3 text-sm text-aibox-text1">{c.requirements.dataNote}</p>
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <!-- ============ 安装三步（→ /download/ + 手动路线锚点） ============ -->
+  <section class="mx-auto max-w-6xl px-5 py-14">
+    <h2 class="h-section m-0 mb-10">{c.install.heading}</h2>
+    <ol class="relative m-0 list-none border-l border-aibox-line p-0 pl-10">
+      {
+        steps.map((step, i) => (
+          <li class="relative mb-10 last:mb-0">
+            <span
+              class="sq absolute -left-[calc(2.5rem+5px)] top-2"
+              style={`background:${i === steps.length - 1 ? 'var(--aibox-ok)' : 'var(--aibox-green)'}`}
+              aria-hidden="true"
+            />
+            <div class="mb-1 flex items-baseline gap-4">
+              <span class="font-mono text-sm text-aibox-text2">0{i + 1}</span>
+              <h3 class="m-0 font-[family-name:var(--font-display)] text-2xl font-semibold text-aibox-cream">{step.t}</h3>
+            </div>
+            <p class="m-0 max-w-2xl text-aibox-text2">{step.d}</p>
+            {step.cta && (
+              <a class="btn-ghost mt-2 inline-flex" href={`/${lang}/download/`}>
+                {step.cta} →
+              </a>
+            )}
+            {i === steps.length - 1 && <span class="badge badge-ok mt-2">✓ {c.install.done}</span>}
+          </li>
+        ))
+      }
+    </ol>
+    <p class="mt-8 mb-0 text-aibox-text2">
+      {c.install.manual} <a href="#guide" class="text-aibox-info hover:text-aibox-green">{c.install.manualCta} ↓</a>
+    </p>
+  </section>
+
+  <div class="mx-auto max-w-6xl px-5"><PixelRule length={32} every={4} /></div>
+
+  <!-- ============ 教程正文（registry guides/*.md 渲染；空 → 占位） ============ -->
+  <section class="mx-auto max-w-6xl px-5 py-14" id="guide">
+    <h2 class="h-section m-0 mb-4">{c.guide.heading}</h2>
+    <p class="m-0 max-w-3xl text-aibox-text2">{c.guide.lede}</p>
+    {
+      guideHtml ? (
+        <div class="guide-body mt-8" set:html={guideHtml} />
+      ) : (
+        <p class="mt-8 border border-dashed border-aibox-line p-6 text-aibox-text2" style="border-radius:4px">
+          {c.guide.empty}
+        </p>
+      )
+    }
+  </section>
+
+  <!-- ============ 模型配置（detail.providers 数据驱动；空则隐藏） ============ -->
+  {
+    providers.length > 0 && (
+      <section class="mx-auto max-w-6xl px-5 py-14" id="config">
+        <h2 class="h-section m-0 mb-4">{c.providers.heading}</h2>
+        <p class="m-0 max-w-3xl text-aibox-text2">{c.providers.lede}</p>
+        <div class="mt-8 grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))]">
+          {providers.map((p) => (
+            <article class="relative flex flex-col gap-3 border border-aibox-line bg-aibox-raised p-5" style="border-radius:4px">
+              <h4 class="m-0 font-[family-name:var(--font-display)] text-lg font-semibold text-aibox-cream">{providerName(p.id)}</h4>
+              <p class="m-0 text-sm text-aibox-text2">{providerAuth(p)}</p>
+              {p.configTarget && (
+                <p class="mono-block m-0 break-all border border-aibox-line bg-aibox-bg p-2 font-mono text-xs text-aibox-info" style="border-radius:4px">
+                  {p.configTarget}
+                </p>
+              )}
+              {p.getKeyUrl && p.authType !== 'local' && (
+                <a
+                  class="mt-auto inline-flex items-center gap-1 font-mono text-xs text-aibox-info no-underline hover:text-aibox-green"
+                  href={p.getKeyUrl}
+                  rel="noopener noreferrer nofollow"
+                  target="_blank"
+                >
+                  {c.providers.getKey} ↗
+                </a>
+              )}
+            </article>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ============ FAQ（FAQPage JSON-LD 同源） ============ -->
+  <section class="mx-auto max-w-6xl px-5 py-14" id="faq">
+    <h2 class="h-section m-0 mb-8">{c.faq.heading}</h2>
+    <dl class="prose-page m-0">
+      {
+        faqItems.map((item, i) => (
+          <div class="border-b border-aibox-line py-6 first:pt-0">
+            <dt class="mb-2 flex items-start gap-4">
+              <span class="step-num" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span class="font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{item.q}</span>
+            </dt>
+            <dd class="m-0 pl-[calc(1.4em+1rem)] text-aibox-text2">
+              <p class="m-0">{item.a}</p>
+              {item.link && (
+                <p class="mt-2 mb-0">
+                  <a href={`/${lang}${item.link.href}`} class="text-aibox-info hover:text-aibox-green">
+                    {item.link.label} →
+                  </a>
+                </p>
+              )}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <!-- ============ 版本与更新（registry 每日探活） ============ -->
+  <section class="mx-auto max-w-6xl px-5 py-14" id="changelog">
+    <h2 class="h-section m-0 mb-8">{c.changelog.heading}</h2>
+    <div class="panel max-w-3xl">
+      <dl class="m-0 grid gap-3 text-sm">
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-aibox-text2">{c.changelog.versionH}</dt>
+          <dd class="m-0 font-mono text-aibox-cream">{detail.version ? `v${detail.version}` : c.changelog.unknown}</dd>
+        </div>
+        {
+          detail.upstreamNpm && (
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-aibox-text2">npm · {detail.upstreamNpm.name}</dt>
+              <dd class="m-0 font-mono text-aibox-cream">{detail.upstreamNpm.version || c.changelog.unknown}</dd>
+            </div>
+          )
+        }
+        {
+          detail.updatedAt && (
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-aibox-text2">{c.changelog.updatedH}</dt>
+              <dd class="m-0 font-mono text-aibox-cream">{detail.updatedAt.slice(0, 10)}</dd>
+            </div>
+          )
+        }
+      </dl>
+
+      {
+        detail.upstreamGithub && detail.upstreamGithub.length > 0 && (
+          <div class="mt-4 border-t border-aibox-line pt-4">
+            <p class="m-0 mb-2 text-sm text-aibox-text2">{c.changelog.upstreamH}</p>
+            <ul class="pixel-list m-0 p-0 text-sm">
+              {detail.upstreamGithub.map((g) => (
+                <li class="mb-1">
+                  <a
+                    class="font-mono text-aibox-info no-underline hover:text-aibox-green"
+                    href={`https://github.com/${g.repo}/releases/tag/${g.tag}`}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    {g.repo} {g.tag} ↗
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+
+      <p class="mt-4 mb-0 text-xs text-aibox-text2">{c.changelog.dailyNote}</p>
+    </div>
+  </section>
+
+  <!-- ============ 反馈入口 ============ -->
+  <section class="mx-auto max-w-6xl px-5 pb-16">
+    <div class="panel flex flex-wrap items-center justify-between gap-4">
+      <div class="max-w-2xl">
+        <h2 class="m-0 mb-1 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{c.feedback.heading}</h2>
+        <p class="m-0 text-sm text-aibox-text2">{c.feedback.body}</p>
+      </div>
+      <div class="flex flex-wrap gap-4">
+        <a class="btn-cta no-underline" href={feedbackUrl} rel="noopener noreferrer" target="_blank">
+          <span>{c.feedback.cta}</span>
+          <span class="mono" aria-hidden="true">↗</span>
+        </a>
+        <a class="btn-ghost" href={`/${lang}/apps/`}>{c.hero.back} →</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<!-- 教程正文样式（guide-body 类名约定；set:html 内容不参与组件 scoped，故用全局选择器 + 类名前缀） -->
+<style is:global>
+  .guide-body {
+    max-width: 72ch;
+  }
+  .guide-body h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 24px;
+    line-height: 1.25;
+    color: var(--aibox-cream);
+    margin: 36px 0 10px;
+  }
+  .guide-body h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 19px;
+    color: var(--aibox-cream);
+    margin: 28px 0 8px;
+  }
+  .guide-body p {
+    margin: 0 0 16px;
+    color: var(--aibox-text2);
+    line-height: 1.7;
+  }
+  .guide-body a {
+    color: var(--aibox-info);
+    text-underline-offset: 3px;
+  }
+  .guide-body a:hover {
+    color: var(--aibox-green);
+  }
+  .guide-body strong {
+    color: var(--aibox-cream);
+    font-weight: 600;
+  }
+  .guide-body code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    background: var(--aibox-bg);
+    border: 1px solid var(--aibox-line);
+    border-radius: 3px;
+    padding: 1px 6px;
+    color: var(--aibox-info);
+    word-break: break-all;
+  }
+  .guide-body pre.guide-code {
+    background: var(--aibox-bg);
+    border: 1px solid var(--aibox-line);
+    border-radius: 4px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0 0 20px;
+  }
+  .guide-body pre.guide-code code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--aibox-text1);
+    white-space: pre;
+  }
+  .guide-body ul,
+  .guide-body ol {
+    margin: 0 0 20px;
+    padding-left: 1.4em;
+    color: var(--aibox-text2);
+    line-height: 1.7;
+  }
+  .guide-body li {
+    margin-bottom: 6px;
+  }
+  .guide-body li::marker {
+    color: var(--aibox-green);
+  }
+  .guide-body blockquote {
+    margin: 0 0 20px;
+    border-left: 2px solid var(--aibox-green);
+    padding: 4px 0 4px 14px;
+    color: var(--aibox-text1);
+  }
+  .guide-body hr {
+    border: none;
+    border-top: 1px solid var(--aibox-line);
+    margin: 28px 0;
+  }
+  .guide-body .guide-table {
+    overflow-x: auto;
+    margin: 0 0 20px;
+  }
+  .guide-body table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+  }
+  .guide-body th,
+  .guide-body td {
+    border: 1px solid var(--aibox-line);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+    color: var(--aibox-text2);
+  }
+  .guide-body th {
+    background: var(--aibox-raised);
+    color: var(--aibox-cream);
+    font-weight: 600;
+  }
+</style>

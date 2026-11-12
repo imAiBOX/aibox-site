@@ -1,0 +1,27 @@
+---
+// 通用应用落地页动态路由：registry index 每个应用 × en/zh 各一页。
+// openclaw 为手写页（src/pages/<lang>/apps/openclaw/），此处排除，手写页优先。
+// 容错红线：registry 不可达 → getStaticPaths 返回空数组（无新页但构建绝不炸）。
+import AppLandingPage from '../../../../components/pages/AppLandingPage.astro';
+import { fetchRegistry } from '../../../../data/registry';
+import type { Lang } from '../../../../i18n/pages';
+
+export async function getStaticPaths() {
+  const paths: { params: { lang: Lang; id: string } }[] = [];
+  try {
+    const { apps } = await fetchRegistry();
+    for (const app of apps) {
+      if (app.id === 'openclaw') continue; // 手写页优先
+      if (!/^[A-Za-z0-9_-]{1,64}$/.test(app.id)) continue; // 路由安全
+      for (const lang of ['en', 'zh'] as const) paths.push({ params: { lang, id: app.id } });
+    }
+  } catch {
+    // 构建不炸
+  }
+  return paths;
+}
+
+const { lang, id } = Astro.params;
+---
+
+<AppLandingPage lang={(lang ?? 'en') as Lang} id={id ?? ''} />

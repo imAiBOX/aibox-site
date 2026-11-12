@@ -9,7 +9,7 @@ interface Props {
   app: RegistryApp;
   lang: Lang;
   live: boolean;
-  /** 有落地页时整卡可点（避免 404，只在 LANDING_APP_IDS 登记过的 id 挂链） */
+  /** 落地页链接（所有 registry 应用均有模板化落地页；无则整卡不可点） */
   href?: string;
 }
 const { app, lang, live, href } = Astro.props;
@@ -32,7 +32,7 @@ const Tag = href ? 'a' : 'article';
 ---
 <Tag
   href={href}
-  class="flex flex-col gap-3 border border-aibox-line bg-aibox-raised p-4 text-aibox-text1 no-underline transition-colors hover:border-aibox-green-d"
+  class="flex h-full flex-col gap-3 border border-aibox-line bg-aibox-raised p-4 text-aibox-text1 no-underline transition-colors hover:border-aibox-green-d"
   style="border-radius:4px"
 >
   <div class="flex items-center justify-between gap-2">
