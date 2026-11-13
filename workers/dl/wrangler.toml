@@ -1,0 +1,14 @@
+name = "aibox-dl"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+workers_dev = false
+
+# Custom domain is bound by `wrangler deploy` (creates/updates the DNS record
+# for dl.aibox.im in the aibox.im zone).
+routes = [
+  { pattern = "dl.aibox.im", custom_domain = true }
+]
+
+kv_namespaces = [
+  { binding = "HITS", id = "85edd16a07de43fbb2794f725703d1ab" }
+]

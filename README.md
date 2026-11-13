@@ -26,6 +26,11 @@ brand-green VI, and the app catalog pulled from `aibox-registry` at build time.
     npx --yes wrangler@4.62.0 pages deploy dist --project-name=aibox-site --branch=main
   ```
 
+- **Download short-link Worker** (`workers/dl/`, separate Wrangler project `aibox-dl`,
+  deployed manually — not part of the Pages pipeline): serves `https://dl.aibox.im`
+  with 302 redirects to GitHub Releases plus a best-effort daily counter.
+  See [`workers/dl/README.md`](workers/dl/README.md) for routes and deploy commands.
+
 ## Quality gates (CI `quality` job)
 
 - **Bilingual route parity**: `node scripts/check-routes.mjs` — every `/en/…` page must have a `/zh/…`
