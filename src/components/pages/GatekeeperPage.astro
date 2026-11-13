@@ -1,0 +1,70 @@
+---
+// Gatekeeper 图文教程页（en/zh 共用）：四步 + 未公证说明 + SHA256 + 铁律
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { pt, type Lang } from '../../i18n/pages';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const c = pt(lang).gatekeeper;
+
+const title =
+  lang === 'zh'
+    ? 'macOS 打不开怎么办 - Gatekeeper 右键打开四步 | aibox.im'
+    : 'macOS blocked the app - right-click to open in four steps | aibox.im';
+const description =
+  lang === 'zh'
+    ? '「无法验证开发者」四步图文：右键打开 → 确认 → 隐私与安全性「仍要打开」→ 之后不再询问。附未公证说明与 SHA-256 校验方法。'
+    : '“macOS cannot verify the developer” in four steps: right-click → Open → allow in Privacy & Security → done. Why it happens and how to check the checksum.';
+---
+
+<BaseLayout lang={lang} title={title} description={description}>
+  <PageHeader title={c.title} lede={c.lede} />
+
+  <section class="mx-auto max-w-6xl px-5 py-10">
+    <div class="prose-page">
+      <div class="panel">
+        <h2 class="mt-0 mb-2 text-2xl">{c.intro}</h2>
+        <p class="m-0 text-aibox-text2">{c.introBody}</p>
+      </div>
+
+      <!-- 四步：纵向时间线（竖线 + 像素方块，与 SmartScreen 页同构） -->
+      <h2>{c.stepsH}</h2>
+      <ol class="relative m-0 list-none border-l border-aibox-line p-0 pl-8">
+        {
+          c.steps.map((step) => (
+            <li class="relative mb-8 last:mb-0">
+              <span class="sq absolute -left-[calc(2rem+5px)] top-3 bg-aibox-green" aria-hidden="true" />
+              <div class="flex items-baseline gap-4">
+                <h3 class="m-0 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">
+                  {step.t}
+                </h3>
+              </div>
+              <p class="mt-1 mb-0 text-aibox-text2">{step.d}</p>
+            </li>
+          ))
+        }
+      </ol>
+
+      <div class="panel mt-8">
+        <h2 class="mt-0 mb-2 text-2xl">{c.shaH}</h2>
+        <p class="text-aibox-text2">{c.shaBody}</p>
+        <a class="btn-ghost" href={`/${lang}/download/`}>{c.shaCta} →</a>
+      </div>
+
+      <h2>{c.noteH}</h2>
+      <p>{c.noteBody}</p>
+
+      <div class="panel mt-8" style="border-color: color-mix(in srgb, var(--aibox-green) 40%, transparent)">
+        <h2 class="mt-0 mb-2 text-2xl" style="color: var(--aibox-green)">{c.safetyH}</h2>
+        <p class="m-0 text-aibox-cream">{c.safetyBody}</p>
+      </div>
+
+      <p class="mt-8">
+        <a href={`/${lang}/`} class="text-aibox-info hover:text-aibox-green">← {c.back}</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>

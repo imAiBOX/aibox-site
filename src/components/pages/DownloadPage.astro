@@ -43,6 +43,11 @@ const RELEASE_URL = 'https://github.com/imAiBOX/aibox-app/releases/latest';
       </span>
     </div>
 
+    <!-- macOS 打不开引导（放在栅格外侧：disabled 块内不放可聚焦链接，保持无障碍语义干净） -->
+    <p class="mt-3 max-w-3xl text-sm text-aibox-text2">
+      <a class="text-aibox-info hover:text-aibox-green" href={`/${lang}/guides/gatekeeper/`}>{c.mac.help} →</a>
+    </p>
+
     <!-- 版本 / SHA-256 展示区（React 岛：fetch GitHub API + 5min 缓存，失败回落构建时快照） -->
     <div class="mt-8 max-w-3xl">
       <ReleaseInfo client:load snapshot={snapshot} labels={c.release} />

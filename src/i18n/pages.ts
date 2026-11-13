@@ -18,6 +18,7 @@ const en = {
       label: 'macOS',
       note: 'The macOS build is on its way. Windows first.',
       cta: 'Coming soon',
+      help: 'macOS won’t open the app? Read the Gatekeeper guide',
     },
     release: {
       heading: 'This release',
@@ -81,6 +82,11 @@ const en = {
         q: 'Windows warns me with “unknown publisher” — is that bad?',
         a: 'That is SmartScreen doing its job for unsigned apps: Windows has simply not seen this file before. Four clicks get you past it, and the checksum above proves the file is ours.',
         link: { href: '/guides/smartscreen/', label: 'Open the SmartScreen guide' },
+      },
+      {
+        q: 'macOS says it “cannot verify the developer” — can I still open it?',
+        a: 'Yes. That is Gatekeeper checking an app Apple has not notarized yet. Right-click it in Applications and choose Open, confirm, and if it still blocks, allow it once in Privacy & Security. It will not ask again.',
+        link: { href: '/guides/gatekeeper/', label: 'Open the Gatekeeper guide' },
       },
       {
         q: 'Does it work on macOS?',
@@ -202,6 +208,40 @@ const en = {
     noteH: 'Why does this happen at all?',
     noteBody:
       'AiBOX is an unsigned portable app for now — code-signing certificates cost money we would rather spend on the tool itself. Once enough people use it, we buy a certificate and this dialog disappears. Until then, the checksum above is your proof.',
+    safetyH: 'One rule, always',
+    safetyBody: 'Never send your API key to anyone. AiBOX asks for it only to write it into the app’s config file on your own computer.',
+    back: 'Back to home',
+  },
+
+  gatekeeper: {
+    title: 'macOS says it cannot verify the app',
+    lede: 'The first time you open AiBOX on a Mac, macOS stops it. It is not a virus warning. Four steps and you are in.',
+    intro: 'When does it appear?',
+    introBody:
+      'Only the first time you open the app you downloaded. macOS has not seen this developer before, so it asks you to double-check.',
+    stepsH: 'Four steps',
+    steps: [
+      {
+        t: 'Right-click the app in Applications',
+        d: 'Open Finder → Applications, find AiBOX, then Control-click (or two-finger click) and choose “Open”. A plain double-click just refuses to run.',
+      },
+      {
+        t: 'Click “Open” in the dialog',
+        d: 'The popup says macOS cannot verify the developer. The “Open” button is there — it only shows up when you right-click.',
+      },
+      {
+        t: 'Still blocked? Allow it once',
+        d: 'System Settings → Privacy & Security → scroll to the bottom → “Open Anyway”, then confirm the same dialog one more time.',
+      },
+      { t: 'You are in', d: 'AiBOX opens. macOS will not ask you again for this app.' },
+    ],
+    shaH: 'How to check the file is genuine',
+    shaBody:
+      'Every release file has a SHA-256 checksum, shown on the download page and on the GitHub Releases page. Compare it with the file you downloaded — if they differ, do not run it.',
+    shaCta: 'Open the download page',
+    noteH: 'Why does this happen?',
+    noteBody:
+      'The macOS build is signed ad-hoc — enough to run, but not with an Apple Developer ID. Notarizing with Apple costs $99 a year, which we have not paid (yet), so macOS cannot check who made it. We may notarize later, and this whole dialog will disappear. Until then, the checksum above is your proof.',
     safetyH: 'One rule, always',
     safetyBody: 'Never send your API key to anyone. AiBOX asks for it only to write it into the app’s config file on your own computer.',
     back: 'Back to home',
@@ -540,6 +580,7 @@ const zh: PagesDict = {
       label: 'macOS',
       note: 'macOS 版正在路上，先做 Windows。',
       cta: '即将支持',
+      help: 'macOS 打不开？看 Gatekeeper 指引',
     },
     release: {
       heading: '当前版本',
@@ -603,6 +644,11 @@ const zh: PagesDict = {
         q: 'Windows 弹「未知发布者」，要紧吗？',
         a: '那是 SmartScreen 对没签名程序的常规动作：Windows 没见过这个文件而已。四下点过去，校验值能证明文件是我们发的。',
         link: { href: '/guides/smartscreen/', label: '打开 SmartScreen 图文教程' },
+      },
+      {
+        q: 'Mac 提示「无法验证开发者」，还能打开吗？',
+        a: '能。这是 Gatekeeper 在检查还没在 Apple 公证过的应用。到「应用程序」里右键选「打开」、确认一次；还是被拦就去系统设置 → 隐私与安全性底部点「仍要打开」。之后不会再问。',
+        link: { href: '/guides/gatekeeper/', label: '打开 Gatekeeper 图文教程' },
       },
       {
         q: '支持 macOS 吗？',
@@ -723,6 +769,36 @@ const zh: PagesDict = {
     noteH: '为什么会有这个提示？',
     noteBody:
       'AiBOX 目前是免签名便携版——代码签名证书要花钱，我们宁可把钱花在工具本身。等用的人多了，买上证书这个提示就没了。在那之前，上面的校验值就是凭据。',
+    safetyH: '一条铁律',
+    safetyBody: '任何时候都别把 key 发给任何人。AiBOX 只在你自己的电脑上把它写进应用的配置文件。',
+    back: '回首页',
+  },
+
+  gatekeeper: {
+    title: 'macOS 提示无法验证开发者',
+    lede: '第一次在 Mac 上打开 AiBOX，会被 macOS 拦下。这不是说它有病毒。四步就能进。',
+    intro: '什么时候会出现？',
+    introBody: '只在你第一次打开下载的应用时出现。macOS 没见过这个开发者，所以请你再确认一次。',
+    stepsH: '四步',
+    steps: [
+      {
+        t: '在「应用程序」里右键点 AiBOX',
+        d: '打开访达 → 应用程序，找到 AiBOX，按住 Control 点（或双指点）选「打开」。直接双击只会打不开。',
+      },
+      { t: '弹窗里点「打开」', d: '提示「无法验证开发者」。点「打开」——这个按钮只有右键时才会出现。' },
+      {
+        t: '还是被拦？放行一次',
+        d: '系统设置 → 隐私与安全性 → 拉到最底部 →「仍要打开」，再确认一次同样的弹窗。',
+      },
+      { t: '进去了', d: 'AiBOX 打开。这个应用 macOS 不会再问第二次。' },
+    ],
+    shaH: '怎么确认文件是真的',
+    shaBody:
+      '每个发布文件都有 SHA-256 校验值，写在下载页和 GitHub Releases 页面上。和你下载的文件比对——不一致就别运行。',
+    shaCta: '打开下载页',
+    noteH: '为什么会有这个提示？',
+    noteBody:
+      'macOS 版目前是 ad-hoc 签名——能跑，但不是 Apple 开发者证书签的。做 Apple 公证每年要 $99，我们还没花这笔钱，所以 macOS 查不到是谁做的。以后可能会做公证，到那时这个弹窗就没了。在那之前，上面的校验值就是凭据。',
     safetyH: '一条铁律',
     safetyBody: '任何时候都别把 key 发给任何人。AiBOX 只在你自己的电脑上把它写进应用的配置文件。',
     back: '回首页',
