@@ -1,0 +1,5 @@
+{
+  "name": "aibox-dl-worker",
+  "private": true,
+  "type": "module"
+}

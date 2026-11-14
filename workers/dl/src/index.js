@@ -1,4 +1,5 @@
-// download short links: 302 to GitHub Releases + best-effort daily click count
+// download short links: R2 mirror first (streamed by this Worker — zero egress),
+// GitHub Releases fallback + best-effort daily click count
 const REPO = 'imAiBOX/aibox-app';
 const RELEASES = `https://github.com/${REPO}/releases`;
 // KV free tier: 1,000 writes/day (account-wide). Stop writing before the cap so
@@ -6,11 +7,47 @@ const RELEASES = `https://github.com/${REPO}/releases`;
 const DAILY_WRITE_CAP = 950;
 
 const VERSION_RE = /^v?\d+\.\d+\.\d+(?:[-.][0-9A-Za-z.-]+)?$/;
+// object names: one safe path segment (no traversal / no leading dot), bounded
+const OBJECT_NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+const FILE_ROUTE = '/file/';
+const IMMUTABLE_CACHE = 'public, max-age=31536000, immutable';
+
+const PLATFORM_SUFFIX = {
+  win: 'windows-x64.exe',
+  mac: 'macos-universal.dmg',
+};
+
+// pure: platform short-link → asset name (version is part of the name, so a
+// stored object is immutable and cacheable forever)
+function assetName(tag, platform) {
+  const suffix = PLATFORM_SUFFIX[platform];
+  if (!suffix) return null;
+  return `AiBOX-${tag}-${suffix}`;
+}
+
+// pure: where a platform short link points — same-domain /file/ when the object
+// is mirrored in R2, otherwise the GitHub release asset URL (fallback)
+function assetRedirect(tag, platform, mirrored) {
+  const name = assetName(tag, platform);
+  if (!name) return null;
+  return mirrored ? `${FILE_ROUTE}${name}` : `${RELEASES}/download/${tag}/${name}`;
+}
+
+function isValidObjectName(name) {
+  return typeof name === 'string' && OBJECT_NAME_RE.test(name);
+}
 
 function redirect(location) {
   return new Response(null, {
     status: 302,
     headers: { Location: location, 'Cache-Control': 'no-store' },
+  });
+}
+
+function notFound() {
+  return new Response('Not Found — see / for available short links', {
+    status: 404,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
   });
 }
 
@@ -27,8 +64,11 @@ function indexPage() {
 GET /v0.1.3          → release page for tag v0.1.3
 GET /v0.1.3/win      → Windows installer (.exe) direct download
 GET /v0.1.3/mac      → macOS disk image (.dmg) direct download
+GET /file/&lt;name&gt;    → 200 direct download of a mirrored release asset
 GET /count           → today's redirect count (JSON)</pre>
-<p>Source: <a href="${RELEASES}">${REPO}</a></p>
+<p>Mirrored assets stream from R2 through this Worker (no third-party
+redirect); links fall back to <a href="${RELEASES}">${REPO}</a> when a
+release is not mirrored yet.</p>
 </body></html>`;
   return new Response(html, {
     headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' },
@@ -64,6 +104,47 @@ async function countRedirect(env, kind) {
   }
 }
 
+// R2 existence probe for the mirror-first redirect: one cheap HEAD (Class B),
+// fails open to the GitHub fallback if the binding is missing or errors.
+async function isMirrored(env, name) {
+  try {
+    if (!env.BUCKET) return false;
+    return (await env.BUCKET.head(name)) !== null;
+  } catch {
+    return false;
+  }
+}
+
+// Stream an object straight out of R2 through this Worker. Deliberately NOT a
+// 302 to a presigned URL: presigned downloads bill as R2 egress, while a
+// Worker binding read + response streaming costs nothing (zero-egress red line).
+async function serveObject(request, env, rawName) {
+  let name;
+  try { name = decodeURIComponent(rawName); } catch { return notFound(); }
+  if (!isValidObjectName(name)) return notFound();
+
+  const base = {
+    'Content-Type': 'application/octet-stream',
+    'Content-Disposition': `attachment; filename="${name}"`,
+    'Cache-Control': IMMUTABLE_CACHE,
+  };
+  try {
+    if (request.method === 'HEAD') {
+      const obj = env.BUCKET ? await env.BUCKET.head(name) : null;
+      if (!obj) return notFound();
+      return new Response(null, { status: 200, headers: { ...base, 'Content-Length': String(obj.size) } });
+    }
+    const obj = env.BUCKET ? await env.BUCKET.get(name) : null;
+    if (!obj) return notFound();
+    return new Response(obj.body, {
+      status: 200,
+      headers: { ...base, 'Content-Length': String(obj.size) },
+    });
+  } catch {
+    return notFound();
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -86,6 +167,10 @@ export default {
       });
     }
 
+    if (path.startsWith(FILE_ROUTE)) {
+      return serveObject(request, env, path.slice(FILE_ROUTE.length));
+    }
+
     if (path === '/latest') {
       ctx.waitUntil(countRedirect(env, 'latest'));
       return redirect(`${RELEASES}/latest`);
@@ -100,18 +185,17 @@ export default {
       }
     } else if (seg.length === 2) {
       const tag = normalizeVersion(seg[0]);
-      const asset = seg[1] === 'win' ? 'windows-x64.exe'
-        : seg[1] === 'mac' ? 'macos-universal.dmg'
-        : null;
-      if (tag && asset) {
+      const platform = PLATFORM_SUFFIX[seg[1]] ? seg[1] : null;
+      if (tag && platform) {
         ctx.waitUntil(countRedirect(env, 'asset'));
-        return redirect(`${RELEASES}/download/${tag}/AiBOX-${tag}-${asset}`);
+        const name = assetName(tag, platform);
+        const mirrored = await isMirrored(env, name);
+        return redirect(assetRedirect(tag, platform, mirrored));
       }
     }
 
-    return new Response('Not Found — see / for available short links', {
-      status: 404,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
-    });
+    return notFound();
   },
 };
+
+export { assetName, assetRedirect, isValidObjectName, normalizeVersion, PLATFORM_SUFFIX };
