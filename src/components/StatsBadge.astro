@@ -1,0 +1,60 @@
+---
+// 计数徽章：客户端 fetch /api/stats 填充（60s 缓存、失败留 — 不阻塞）；可选 view 上报（每会话每应用一次）
+interface Props {
+  appId: string;
+  /** 打开应用页面时上报一次 view（目录页传 undefined 只展示不上报） */
+  reportView?: boolean;
+  lang?: string;
+}
+const { appId, reportView = false } = Astro.props;
+---
+<span
+  class="stats-badge font-mono text-[10px] text-aibox-text2 opacity-70"
+  data-stats-app={appId}
+  data-stats-report={reportView ? '1' : undefined}
+  aria-live="polite"
+>
+  <span class="stats-val" data-k="views">—</span> views · <span class="stats-val" data-k="installs">—</span> installs
+</span>
+
+<script>
+  // 零框架：填充计数 + 落地页 view 上报（localStorage 每会话每应用一次门控）
+  const fmt = (n: number): string =>
+    n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`
+    : n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k`
+    : String(n);
+
+  const fill = (data: Record<string, { views?: number; installs?: number }>) => {
+    document.querySelectorAll<HTMLElement>('[data-stats-app]').forEach((el) => {
+      const id = el.dataset.statsApp ?? '';
+      const counts = data[id];
+      if (!counts) return;
+      const v = el.querySelector<HTMLElement>('[data-k="views"]');
+      const i = el.querySelector<HTMLElement>('[data-k="installs"]');
+      if (v) v.textContent = fmt(counts.views ?? 0);
+      if (i) i.textContent = fmt(counts.installs ?? 0);
+    });
+  };
+
+  const reportView = (id: string) => {
+    try {
+      const key = `aibox-view:${id}`;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+      navigator.sendBeacon?.('/api/stats', JSON.stringify({ appId: id, type: 'view' }));
+    } catch { /* 静默 */ }
+  };
+
+  const run = async () => {
+    document.querySelectorAll<HTMLElement>('[data-stats-report="1"]').forEach((el) => {
+      if (el.dataset.statsApp) reportView(el.dataset.statsApp);
+    });
+    try {
+      const res = await fetch('/api/stats', { headers: { accept: 'application/json' } });
+      if (!res.ok) return;
+      const body = (await res.json()) as { apps?: Record<string, { views?: number; installs?: number }> };
+      if (body.apps) fill(body.apps);
+    } catch { /* 离线/失败保持 — */ }
+  };
+  void run();
+</script>

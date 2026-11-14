@@ -3,6 +3,7 @@
 // hero 超大字 + 🦞 记忆点 + 系统要求(registry runtime) + 安装三步 + CONFIG 六路径网页版
 // + FAQ(FAQPage JSON-LD) + 更新日志(registry) + 反馈入口
 // 结构化数据：SoftwareApplication + FAQPage（语法按 Google Rich RequirementsTest）
+import StatsBadge from '../StatsBadge.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PixelRule from '../../components/PixelRule.astro';
 import { fetchAppDetail, fetchRegistry } from '../../data/registry';
@@ -80,6 +81,7 @@ const feedbackUrl = 'https://github.com/imAiBOX/aibox-app/issues';
       </h1>
 
       <p class="mt-6 max-w-xl text-lg text-aibox-text2">{c.hero.lede}</p>
+      <div class="mt-3"><StatsBadge appId="openclaw" reportView lang={lang} /></div>
 
       <!-- 平台 / 难度 / 状态徽章（registry 同源） -->
       <div class="mt-6 flex flex-wrap items-center gap-2">

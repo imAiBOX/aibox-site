@@ -86,7 +86,7 @@ jobs:
         run: node scripts/check-routes.mjs
 
       - name: MCP endpoint unit tests (node --test)
-        run: node --test functions/mcp.test.mjs
+        run: node --test functions/mcp.test.mjs functions/_lib/stats.test.mjs
 
       - name: Lighthouse (desktop, assertions in lighthouserc.json)
         run: pnpm exec lhci autorun

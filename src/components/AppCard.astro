@@ -1,6 +1,7 @@
 ---
 // 应用目录卡片（registry 数据渲染；4px 圆角、禁玻璃拟态/大圆角）
 import type { RegistryApp } from '../data/registry';
+import StatsBadge from './StatsBadge.astro';
 import { taglineFor } from '../data/registry';
 import type { Lang } from '../i18n/dict';
 import { t } from '../i18n/dict';
@@ -37,6 +38,7 @@ const Tag = href ? 'a' : 'article';
 >
   <div class="flex items-center justify-between gap-2">
     <h3 class="m-0 font-[family-name:var(--font-display)] text-xl font-semibold text-aibox-cream">{app.name}</h3>
+            <StatsBadge appId={app.id} lang={lang} />
     <span class="sq" style={`background:${status.cls === 'badge-ok' ? 'var(--aibox-ok)' : status.cls === 'badge-info' ? 'var(--aibox-info)' : 'var(--aibox-line)'}`} aria-hidden="true"></span>
   </div>
   {summary && <p class="m-0 text-sm text-aibox-text2">{summary}</p>}

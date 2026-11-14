@@ -2,6 +2,7 @@
 // 通用应用落地页（模板化）：registry index + app.json + guides/*.md 三源驱动
 // 结构对齐 OpenClawPage 视觉体系（h-section/panel/badge/btn-cta/step-num/pixel-rule），
 // 所有 registry 应用自动出页（openclaw 为手写页，动态路由已排除）
+import StatsBadge from '../StatsBadge.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PixelRule from '../../components/PixelRule.astro';
 import { fetchAppDetail, fetchRegistry, taglineFor } from '../../data/registry';
@@ -123,6 +124,7 @@ const feedbackUrl = 'https://github.com/imAiBOX/aibox-app/issues';
       </h1>
 
       {tagline && <p class="mt-6 max-w-xl text-lg text-aibox-text2">{tagline}</p>}
+      <div class="mt-3"><StatsBadge appId={id} reportView lang={lang} /></div>
 
       <div class="mt-6 flex flex-wrap items-center gap-2">
         {platforms.map((p) => <span class="badge">{p}</span>)}

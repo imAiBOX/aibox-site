@@ -9,7 +9,15 @@ import type { ReleaseSnapshot } from '../data/release';
 type ReleaseAsset = { name: string; size: number; url: string; sha256?: string };
 type Release = { tag: string; publishedAt?: string; htmlUrl: string; assets: ReleaseAsset[] };
 
-const API = 'https://api.github.com/repos/imAiBOX/aibox-app/releases/latest';
+const API_PROXY = '/api/github/repos/imAiBOX/aibox-app/releases/latest'; // 同源边缘缓存（免 60/h 限流）
+const API_DIRECT = 'https://api.github.com/repos/imAiBOX/aibox-app/releases/latest'; // 兜底直连
+const fetchRelease = async (): Promise<Response> => {
+  try {
+    const r = await fetch(API_PROXY, { headers: { accept: 'application/vnd.github+json' } });
+    if (r.ok) return r;
+  } catch { /* 代理不可达 → 直连兜底 */ }
+  return fetch(API_DIRECT, { headers: { accept: 'application/vnd.github+json' } });
+};
 const CACHE_KEY = 'aibox.release.v1';
 const TTL_MS = 5 * 60 * 1000;
 
@@ -85,7 +93,7 @@ export default function ReleaseInfo({
       return;
     }
 
-    fetch(API, { headers: { accept: 'application/vnd.github+json' } })
+    fetchRelease()
       .then((res) => {
         if (!res.ok) throw new Error(String(res.status));
         return res.json();
