@@ -1,0 +1,8 @@
+# Cloudflare Pages project config (direct upload mode).
+# Declares the KV binding for /api/stats counters — wrangler pages deploy reads this.
+name = "aibox-site"
+pages_build_output_dir = "dist"
+
+[[kv_namespaces]]
+binding = "stats"
+id = "04ca07e634b941df89a0b9c6c5543a38"
