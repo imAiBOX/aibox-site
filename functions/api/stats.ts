@@ -3,7 +3,7 @@
 // session per app) and deduped server-side per date+app+type, keeping KV writes
 // at ~hundreds/day vs the 1000/day cap; reads are edge-cached for 60s.
 // No IP/UA is stored — anonymous aggregate counts only.
-import { KNOWN_APPS, dedupeKey, type StatsStore } from './_lib/stats';
+import { KNOWN_APPS, dedupeKey, type StatsStore } from '../_lib/stats';
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
