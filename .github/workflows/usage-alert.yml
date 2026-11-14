@@ -1,0 +1,43 @@
+# Daily free-tier usage check: fetch Cloudflare usage, compare against alert
+# thresholds, open an issue (label usage-alert) when a threshold is exceeded and
+# no issue for that metric exists today. Credentials come from repo secrets only.
+name: Usage alert
+
+on:
+  schedule:
+    # Daily 05:23 UTC (off-peak, away from the deploy cron)
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: usage-alert
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Unit tests (offline pure functions)
+        run: node --test scripts/usage-check.test.mjs
+
+      # Fetches usage, compares thresholds, creates/labels an issue when needed.
+      # Exits 2 when no usage endpoint is reachable, 3 when the issue step fails.
+      - name: Check usage and alert
+        run: node scripts/usage-check.mjs
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
