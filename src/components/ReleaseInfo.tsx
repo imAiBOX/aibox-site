@@ -9,7 +9,7 @@ import type { ReleaseSnapshot } from '../data/release';
 type ReleaseAsset = { name: string; size: number; url: string; sha256?: string };
 type Release = { tag: string; publishedAt?: string; htmlUrl: string; assets: ReleaseAsset[] };
 
-const API_PROXY = '/api/github/repos/imAiBOX/aibox-app/releases/latest'; // 同源边缘缓存（免 60/h 限流）
+const API_PROXY = '/api/github?path=' + encodeURIComponent('repos/imAiBOX/aibox-app/releases/latest'); // 同源边缘缓存（免 60/h 限流）
 const API_DIRECT = 'https://api.github.com/repos/imAiBOX/aibox-app/releases/latest'; // 兜底直连
 const fetchRelease = async (): Promise<Response> => {
   try {

@@ -8,13 +8,13 @@ import { isAllowedGithubPath } from '../_lib/stats';
 const UPSTREAM = 'https://api.github.com/';
 const CACHE_SECONDS = 1800; // 30 min — release metadata rarely changes faster
 
-export const onRequest: PagesFunction = async ({ request, params }) => {
+export const onRequest: PagesFunction = async ({ request }) => {
   if (request.method !== 'GET') {
     return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'GET' } });
   }
 
-  const segs = params.path;
-  const rel = Array.isArray(segs) ? segs.join('/') : String(segs ?? '');
+  // Query-param route (Pages filename params reject "[...path]" — see deploy log)
+  const rel = new URL(request.url).searchParams.get('path') ?? '';
   if (!isAllowedGithubPath(rel)) {
     return new Response(JSON.stringify({ ok: false, error: 'path not allowed' }), {
       status: 403,
