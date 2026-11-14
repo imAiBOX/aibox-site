@@ -16,8 +16,8 @@ const en = {
     },
     mac: {
       label: 'macOS',
-      note: 'The macOS build is on its way. Windows first.',
-      cta: 'Coming soon',
+      note: 'macOS 12+ · Universal · portable',
+      cta: 'Download for macOS',
       help: 'macOS won’t open the app? Read the Gatekeeper guide',
     },
     release: {
@@ -111,7 +111,7 @@ const en = {
     blocks: [
       {
         h: 'What it is',
-        p: 'A small portable program for Windows (macOS coming). You pick an app from the catalog, AiBOX checks your machine, installs what is missing in order, fills in your API key, and then proves the app actually answers. If something is in the way, it clears it — in plain language, one step at a time.',
+        p: 'A small portable program for Windows and macOS. You pick an app from the catalog, AiBOX checks your machine, installs what is missing in order, fills in your API key, and then proves the app actually answers. If something is in the way, it clears it — in plain language, one step at a time.',
       },
       {
         h: 'What it is not',
@@ -318,7 +318,7 @@ const en = {
       steps: [
         {
           t: 'Install AiBOX',
-          d: 'One portable file for Windows (macOS coming). Double-click and it runs — no installer, no administrator rights.',
+          d: 'One portable file for Windows and macOS. Double-click and it runs — no installer, no administrator rights.',
           cta: 'Go to download',
         },
         { t: 'Pick OpenClaw', d: 'AiBOX checks what your machine already has, then installs what is missing — in order, automatically.', cta: '' },
@@ -578,8 +578,8 @@ const zh: PagesDict = {
     },
     mac: {
       label: 'macOS',
-      note: 'macOS 版正在路上，先做 Windows。',
-      cta: '即将支持',
+      note: 'macOS 12+ · Universal · 免安装',
+      cta: '下载 macOS 版',
       help: 'macOS 打不开？看 Gatekeeper 指引',
     },
     release: {

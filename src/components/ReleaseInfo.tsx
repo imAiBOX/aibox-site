@@ -130,6 +130,7 @@ export default function ReleaseInfo({
   }, [snapshot]);
 
   const winAsset = release?.assets.find((a) => /\.exe$/i.test(a.name)) ?? release?.assets[0];
+  const macAsset = release?.assets.find((a) => /\.dmg$/i.test(a.name));
   const sourceLabel = source === 'live' ? labels.live : source === 'cached' ? labels.cached : labels.snapshot;
 
   const copySha = (sha: string) => {
@@ -167,20 +168,26 @@ export default function ReleaseInfo({
             <dd className="mono-block m-0">{fmtDate(release.publishedAt)}</dd>
           </div>
           {winAsset && (
-            <>
-              <div className="flex items-baseline justify-between gap-4 border-b border-aibox-line pb-3">
-                <dt className="text-aibox-text2">{labels.file}</dt>
-                <dd className="mono-block m-0">
-                  <a href={winAsset.url} rel="noopener noreferrer" className="text-aibox-info hover:text-aibox-green">
-                    {winAsset.name}
-                  </a>
-                </dd>
-              </div>
-              <div className="flex items-baseline justify-between gap-4 border-b border-aibox-line pb-3">
-                <dt className="text-aibox-text2">{labels.size}</dt>
-                <dd className="mono-block m-0">{fmtSize(winAsset.size)}</dd>
-              </div>
-            </>
+            <div className="flex items-baseline justify-between gap-4 border-b border-aibox-line pb-3">
+              <dt className="text-aibox-text2">Windows</dt>
+              <dd className="mono-block m-0">
+                <a href={winAsset.url} rel="noopener noreferrer" className="text-aibox-info hover:text-aibox-green">
+                  {winAsset.name}
+                </a>
+                <span className="ml-2 text-aibox-text2">{fmtSize(winAsset.size)}</span>
+              </dd>
+            </div>
+          )}
+          {macAsset && (
+            <div className="flex items-baseline justify-between gap-4 border-b border-aibox-line pb-3">
+              <dt className="text-aibox-text2">macOS</dt>
+              <dd className="mono-block m-0">
+                <a href={macAsset.url} rel="noopener noreferrer" className="text-aibox-info hover:text-aibox-green">
+                  {macAsset.name}
+                </a>
+                <span className="ml-2 text-aibox-text2">{fmtSize(macAsset.size)}</span>
+              </dd>
+            </div>
           )}
           {winAsset?.sha256 && (
             <div className="grid gap-2">

@@ -36,11 +36,13 @@ const RELEASE_URL = 'https://github.com/imAiBOX/aibox-app/releases/latest';
           {c.win.cta}
         </span>
       </a>
-      <span class="btn-platform disabled" aria-disabled="true">
-        <span class="plat-name">{c.mac.label}</span>
+      <a class="btn-platform" href={RELEASE_URL} rel="noopener noreferrer">
+        <span class="plat-name">{c.mac.label} ↓</span>
         <span class="plat-note">{c.mac.note}</span>
-        <span class="mt-2 inline-flex items-center gap-2 border-t border-aibox-line pt-2 text-sm">{c.mac.cta}</span>
-      </span>
+        <span class="mt-2 inline-flex items-center gap-2 border-t border-black/20 pt-2 text-sm font-semibold">
+          {c.mac.cta}
+        </span>
+      </a>
     </div>
 
     <!-- macOS 打不开引导（放在栅格外侧：disabled 块内不放可聚焦链接，保持无障碍语义干净） -->
