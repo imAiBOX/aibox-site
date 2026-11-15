@@ -24,7 +24,7 @@ test('whitelist covers every registry app id', () => {
   assert.ok(KNOWN_APPS.has('aidog'));
   assert.ok(KNOWN_APPS.has('hermes-agent'));
   assert.ok(KNOWN_APPS.has('lobechat'));
-  assert.ok(KNOWN_APPS.has('roo-code'));
+  assert.ok(KNOWN_APPS.has('continue'));
   assert.equal(KNOWN_APPS.size, 17);
 });
 

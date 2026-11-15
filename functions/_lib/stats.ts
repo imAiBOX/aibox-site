@@ -2,23 +2,23 @@
 
 /** Apps known to the registry — the only ids we accept writes for. */
 export const KNOWN_APPS: Set<string> = new Set([
-  'openclaw',
-  'ollama',
-  'cherry-studio',
-  'chatbox',
-  'jan',
-  'aidog',
-  'hermes-agent',
-  'nanobot',
-  'cowagent',
-  'cline',
-  'llamafile',
-  'anything-llm',
-  'gpt4all',
   'aider',
-  'lobechat',
+  'aidog',
+  'anything-llm',
+  'chatbox',
+  'cherry-studio',
+  'cline',
   'comfyui',
-  'roo-code',
+  'continue',
+  'cowagent',
+  'gpt4all',
+  'hermes-agent',
+  'jan',
+  'llamafile',
+  'lobechat',
+  'nanobot',
+  'ollama',
+  'openclaw',
 ]);
 
 /** Dedupe key: one KV flag write per app/type/day (keeps writes ≪ 1000/day). */
