@@ -46,3 +46,14 @@ export function isAllowedGithubPath(path: string): boolean {
   if (!clean || clean.includes('..')) return false;
   return GITHUB_ALLOW_PREFIX.some((p) => clean.startsWith(p));
 }
+
+/** Anonymous device id: 8-64 chars of hex/uuid fragments. Random local UUID only. */
+export function isValidAid(aid: unknown): aid is string {
+  return typeof aid === 'string' && /^[0-9a-f-]{8,64}$/.test(aid);
+}
+
+/** Dedupe key including device id (falls back to per-app/type when aid missing). */
+export function dedupeKeyWithAid(appId: string, type: 'view' | 'install', aid?: string): string {
+  const base = dedupeKey(appId, type);
+  return isValidAid(aid) ? `${base}:${aid}` : base;
+}

@@ -36,12 +36,23 @@ const { appId, reportView = false } = Astro.props;
     });
   };
 
+  const getAid = (): string | undefined => {
+    try {
+      let aid = localStorage.getItem('aibox-aid');
+      if (!aid) {
+        aid = crypto.randomUUID();
+        localStorage.setItem('aibox-aid', aid);
+      }
+      return aid;
+    } catch { return undefined; }
+  };
+
   const reportView = (id: string) => {
     try {
       const key = `aibox-view:${id}`;
       if (sessionStorage.getItem(key)) return;
       sessionStorage.setItem(key, '1');
-      navigator.sendBeacon?.('/api/stats', JSON.stringify({ appId: id, type: 'view' }));
+      navigator.sendBeacon?.('/api/stats', JSON.stringify({ appId: id, type: 'view', aid: getAid() }));
     } catch { /* 静默 */ }
   };
 
