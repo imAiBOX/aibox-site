@@ -80,6 +80,9 @@ export const onRequest: PagesFunction<{ stats?: StatsStore }> = async ({ request
     }
 
     const body2 = body as { appId?: unknown; type?: unknown; aid?: unknown };
+    if (body2.aid !== undefined && !isValidAid(body2.aid)) {
+      return json({ ok: false, error: 'bad aid' }, 400); // malformed id rejected
+    }
     const aid = isValidAid(body2.aid) ? body2.aid : undefined;
     try {
       const key = dedupeKeyWithAid(appId, type, aid);
