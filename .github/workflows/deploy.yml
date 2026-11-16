@@ -93,3 +93,17 @@ jobs:
 
       - name: Lighthouse (desktop, assertions in lighthouserc.json)
         run: pnpm exec lhci autorun
+
+  # dl.aibox.im short-link worker (workers/dl) — manual-safe idempotent deploy
+  deploy-dl-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Deploy dl worker
+        working-directory: workers/dl
+        run: npx --yes wrangler@4.62.0 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
