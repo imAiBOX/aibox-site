@@ -16,11 +16,12 @@ API-key configuration, and verifies with a real test message. No terminal, no ad
 - Latest release: https://github.com/imAiBOX/aibox-app/releases/latest (asset `AiBOX-vX.Y.Z-windows-x64.exe`)
 - Checksums: published on the download page and derived from GitHub Release asset digests
 - Languages: English default; Chinese at /zh/ and in-app
+- Catalog size: 20 apps (example ids: openclaw, ollama, cherry-studio, chatbox, jan, cline, comfyui, sillytavern) — full list in `GET /meta/index.json`
 
 ## Machine-readable endpoints (no auth, read-only)
 
 - `GET /meta/index.json` — app catalog snapshot (mirrors the GitHub registry; rebuilt on registry push)
-- `GET /meta/apps/{id}.json` — full app profile (channels, sha256, install/probe, maintenance)
+- `GET /meta/apps/{id}/app.json` — full app profile (channels, sha256, install/probe, maintenance). Example: `/meta/apps/openclaw/app.json`
 - `GET /meta/locales/{lang}.json` — UI locale packs
 - `GET /llms.txt` — site summary in llms.txt format
 - `GET /openapi.json` — OpenAPI description of the endpoints above

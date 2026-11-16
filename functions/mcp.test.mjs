@@ -31,6 +31,8 @@ test('tools/call sections return distinct text payloads', () => {
   assert.match(text(product), /Installed until it works/);
   assert.match(text(download), /releases\/latest/);
   assert.match(text(apps), /meta\/index\.json/);
+  assert.match(text(apps), /meta\/apps\/\{id\}\/app\.json/); // 端点路径与 gen-meta 实际产出一致
+  assert.doesNotMatch(text(apps), /meta\/apps\/\{id\}\.json/); // 防止回退到错误路径
   assert.notEqual(text(product), text(download));
 });
 

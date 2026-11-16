@@ -32,9 +32,9 @@ const DOWNLOAD_TEXT = [
 ].join('\n');
 
 const APPS_TEXT = [
-  'The live app catalog is always at https://aibox.im/meta/index.json (mirrors github.com/imAiBOX/aibox-registry).',
-  'Each app profile (channels, sha256, install/probe, maintenance): https://aibox.im/meta/apps/{id}.json',
-  'Example ids: openclaw, ollama, cherry-studio, chatbox, jan.',
+  'The live app catalog is always at https://aibox.im/meta/index.json (mirrors github.com/imAiBOX/aibox-registry; full list with ids and count).',
+  'Each app profile (channels, sha256, install/probe, maintenance): https://aibox.im/meta/apps/{id}/app.json',
+  'Example ids: openclaw, ollama, cherry-studio, chatbox, jan, cline, comfyui, sillytavern.',
 ].join('\n');
 
 function toolResult(section?: unknown): Record<string, unknown> {

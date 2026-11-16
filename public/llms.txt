@@ -14,9 +14,14 @@ AiBOX.im is the official website for the AiBOX desktop app (open source, English
 - [FAQ](https://aibox.im/en/faq/) · [Network self-check](https://aibox.im/en/guides/network-selfcheck/) · [SmartScreen guide](https://aibox.im/en/guides/smartscreen/)
 - [Privacy](https://aibox.im/en/privacy/) · [About](https://aibox.im/en/about/)
 
+## App catalog (20 apps)
+
+- Example pages: [OpenClaw](https://aibox.im/en/apps/openclaw/), [Ollama](https://aibox.im/en/apps/ollama/), [Cherry Studio](https://aibox.im/en/apps/cherry-studio/), [Chatbox](https://aibox.im/en/apps/chatbox/), [Jan](https://aibox.im/en/apps/jan/), [Cline](https://aibox.im/en/apps/cline/), [ComfyUI](https://aibox.im/en/apps/comfyui/), [SillyTavern](https://aibox.im/en/apps/sillytavern/)
+- 20 apps in total — full list with difficulty, platforms and status: [GET /meta/index.json](https://aibox.im/meta/index.json). Every app also has an install-guide page at `https://aibox.im/en/apps/{id}/` (and `/zh/`).
+
 ## Data & API (for AI agents)
 
-- Catalog snapshot: [GET /meta/index.json](https://aibox.im/meta/index.json) · per-app: `/meta/apps/{id}.json` · locales: `/meta/locales/{lang}.json` (mirrors the GitHub registry, rebuilt on every registry push)
+- Catalog snapshot: [GET /meta/index.json](https://aibox.im/meta/index.json) · per-app: `/meta/apps/{id}/app.json` · locales: `/meta/locales/{lang}.json` (mirrors the GitHub registry, rebuilt on every registry push)
 - Machine-readable site summary: [llms.txt](https://aibox.im/llms.txt) · [agents.md](https://aibox.im/agents.md) · [OpenAPI](https://aibox.im/openapi.json)
 - MCP endpoint (read-only): `POST https://aibox.im/mcp` — tool `get_aibox_info`
 - Source of truth: [github.com/imAiBOX/aibox-registry](https://github.com/imAiBOX/aibox-registry) (also via jsDelivr and raw.githubusercontent.com)

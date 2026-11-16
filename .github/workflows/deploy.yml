@@ -85,6 +85,9 @@ jobs:
       - name: Check zh/en route parity
         run: node scripts/check-routes.mjs
 
+      - name: SEO audit (landing pages title/description/JSON-LD/hreflang)
+        run: node scripts/seo-audit.mjs
+
       - name: MCP endpoint unit tests (node --test)
         run: node --test functions/mcp.test.mjs functions/_lib/stats.test.mjs workers/dl/src/index.test.mjs
 

@@ -61,10 +61,18 @@ const providerAuth = (p: { authType?: string }): string =>
 
 // —— SEO ——
 const title = lang === 'zh' ? `${appName} 安装教程 - 不会命令行也能装好 | aibox.im` : `${appName} install & setup guide | aibox.im`;
-const description =
+const rawDesc =
   lang === 'zh'
     ? `${appName} 中文安装教程：三步装好，${tagline || '系统要求、模型配置、常见问题都在这一页。'}`
     : `${appName} install guide: three steps to set it up — ${tagline || 'system requirements, model setup and FAQ on one page.'}`;
+// 模板兜底：tagline 过短时 description 会低于 SEO 下限，补一句固定尾（不逐页手改）
+const MIN_DESC = 60;
+const description =
+  rawDesc.length >= MIN_DESC
+    ? rawDesc
+    : lang === 'zh'
+      ? `${rawDesc}，附系统要求、版本与常见问题。`
+      : `${rawDesc} — system requirements, versions and FAQ.`;
 
 // —— JSON-LD ①：SoftwareApplication ——
 const CATEGORY_LD: Record<string, string> = {
