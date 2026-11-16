@@ -25,7 +25,11 @@ test('whitelist covers every registry app id', () => {
   assert.ok(KNOWN_APPS.has('hermes-agent'));
   assert.ok(KNOWN_APPS.has('lobechat'));
   assert.ok(KNOWN_APPS.has('continue'));
-  assert.equal(KNOWN_APPS.size, 17);
+  assert.ok(KNOWN_APPS.has('moneyprinterturbo'));
+  assert.ok(KNOWN_APPS.has('stable-diffusion-webui'));
+  assert.ok(KNOWN_APPS.has('fooocus'));
+  assert.equal(KNOWN_APPS.has('roo-code'), false);
+  assert.equal(KNOWN_APPS.size, 21);
 });
 
 test('github proxy allowlist', () => {

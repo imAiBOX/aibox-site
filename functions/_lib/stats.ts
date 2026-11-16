@@ -11,14 +11,18 @@ export const KNOWN_APPS: Set<string> = new Set([
   'comfyui',
   'continue',
   'cowagent',
+  'fooocus',
   'gpt4all',
   'hermes-agent',
   'jan',
   'llamafile',
   'lobechat',
+  'moneyprinterturbo',
   'nanobot',
   'ollama',
   'openclaw',
+  'sillytavern',
+  'stable-diffusion-webui',
 ]);
 
 /** Dedupe key: one KV flag write per app/type/day (keeps writes ≪ 1000/day). */
