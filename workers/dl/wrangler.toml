@@ -13,9 +13,6 @@ kv_namespaces = [
   { binding = "HITS", id = "85edd16a07de43fbb2794f725703d1ab" }
 ]
 
-# Release-asset mirror: `wrangler r2 bucket create aibox-releases` (free tier:
-# 10 GB storage, zero egress — the Worker streams objects via this binding).
-# Objects are version-pinned file names, hence immutable long caching.
-[[r2_buckets]]
-binding = "BUCKET"
-bucket_name = "aibox-releases"
+# Release-asset mirror (R2) intentionally omitted: R2 enablement requires a
+# payment method on the account, which is out of scope for the free-only stack.
+# The /file route degrades to GitHub fallback when the BUCKET binding is absent.
