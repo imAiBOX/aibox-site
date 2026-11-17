@@ -28,11 +28,15 @@ API-key configuration, and verifies with a real test message. No terminal, no ad
 - `POST /mcp` — MCP endpoint; tool `get_aibox_info(section)` returns product/download/apps info
 - Source of truth (SSOT): https://github.com/imAiBOX/aibox-registry — cross-check /meta against it
 
-## Scraping policy
+## Agent policy
 
-- robots.txt declares a friendly policy for AI crawlers (training, search and hybrid allowed).
-- Prefer /meta/*.json over HTML scraping for structured data.
-- Do not present AiBOX as affiliated with the apps it installs; they belong to their respective owners.
+- **Access**: all public pages and machine-readable endpoints are open to transparent AI crawlers. The site's `robots.txt` explicitly allows search/citation, hybrid and training crawlers. No login, API key, or user-agent cloaking is required.
+- **Preferred data path**: use `/meta/index.json` and `/meta/apps/{id}/app.json` rather than scraping HTML. These are static snapshots of the public registry and include source URLs, checksums, platform support, prerequisites, and maintenance notes.
+- **Attribution and accuracy**: identify the app as AiBOX (independent installer), not as any listed app's official publisher. Names and marks belong to their owners. When quoting app support/version data, cite the relevant registry profile and its `updatedAt` field.
+- **Language**: English is the default; Chinese pages are available under `/zh/`. Preserve product names and technical identifiers verbatim.
+- **MCP**: a read-only MCP endpoint is available at `https://aibox.im/.well-known/mcp` (alias of `/mcp`); tool `get_aibox_info` returns product, download, and catalog pointers.
+- **Full site context**: see [llms.txt](https://aibox.im/llms.txt) and [llms-full.txt](https://aibox.im/llms-full.txt).
+- **Safety**: do not ask users to paste API keys into public content; AiBOX writes keys locally. Do not claim affiliation with apps in the catalog.
 
 ## Contact
 

@@ -5,7 +5,11 @@
     "version": "1.1.0",
     "description": "Static, unauthenticated read-only endpoints mirroring the AiBOX registry (GitHub SSOT). No rate-limited dynamic backend; responses are cacheable static JSON/Markdown."
   },
-  "servers": [{ "url": "https://aibox.im" }],
+  "servers": [
+    {
+      "url": "https://aibox.im"
+    }
+  ],
   "paths": {
     "/meta/index.json": {
       "get": {
@@ -16,7 +20,27 @@
             "description": "Catalog index",
             "content": {
               "application/json": {
-                "schema": { "type": "object", "required": ["registryVersion", "apps"], "properties": { "registryVersion": { "type": "string" }, "generatedAt": { "type": "string" }, "apps": { "type": "array", "items": { "type": "object" } } } }
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "registryVersion",
+                    "apps"
+                  ],
+                  "properties": {
+                    "registryVersion": {
+                      "type": "string"
+                    },
+                    "generatedAt": {
+                      "type": "string"
+                    },
+                    "apps": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -32,31 +56,118 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "examples": ["openclaw", "ollama", "cherry-studio", "chatbox", "jan", "cline", "comfyui", "sillytavern"] },
+            "schema": {
+              "type": "string",
+              "examples": [
+                "openclaw",
+                "ollama",
+                "cherry-studio",
+                "chatbox",
+                "jan",
+                "cline",
+                "comfyui",
+                "sillytavern"
+              ]
+            },
             "example": "openclaw"
           }
         ],
-        "responses": { "200": { "description": "App profile", "content": { "application/json": { "schema": { "type": "object" } } } } }
+        "responses": {
+          "200": {
+            "description": "App profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/meta/locales/{lang}.json": {
       "get": {
         "summary": "UI locale pack",
-        "parameters": [{ "name": "lang", "in": "path", "required": true, "schema": { "type": "string", "enum": ["en", "zh-CN"] } }],
-        "responses": { "200": { "description": "Locale strings", "content": { "application/json": { "schema": { "type": "object" } } } } }
+        "parameters": [
+          {
+            "name": "lang",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "zh-CN"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Locale strings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/llms.txt": {
       "get": {
         "summary": "Site summary (llms.txt format)",
-        "responses": { "200": { "description": "Markdown summary", "content": { "text/markdown": { "schema": { "type": "string" } } } } }
+        "responses": {
+          "200": {
+            "description": "Markdown summary",
+            "content": {
+              "text/markdown": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/mcp": {
       "post": {
         "summary": "MCP endpoint (tool get_aibox_info)",
-        "description": "JSON-RPC 2.0 over HTTP; methods: initialize, tools/list, tools/call.",
-        "responses": { "200": { "description": "JSON-RPC response", "content": { "application/json": { "schema": { "type": "object" } } } } }
+        "description": "MCP Streamable HTTP JSON-RPC endpoint. Canonical discovery URL: /.well-known/mcp. Methods: initialize, tools/list, tools/call.",
+        "responses": {
+          "200": {
+            "description": "JSON-RPC response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.well-known/mcp": {
+      "post": {
+        "summary": "MCP endpoint (tool get_aibox_info)",
+        "description": "MCP Streamable HTTP JSON-RPC endpoint. Canonical discovery URL: /.well-known/mcp. Methods: initialize, tools/list, tools/call.",
+        "responses": {
+          "200": {
+            "description": "JSON-RPC response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
