@@ -13,14 +13,21 @@ export const onRequest: PagesFunction = ({ request }): Response => {
   }
 
   if (request.method === 'GET') {
+    // Discovery probe + human-readable server descriptor; JSON-RPC calls use POST.
     return Response.json(
-      { name: 'aibox-im', version: '1.0.0', transport: 'streamable-http', endpoint: 'POST /mcp' },
-      { status: 405, headers: { ...cors, Allow: 'POST, OPTIONS' } },
+      {
+        name: 'aibox-im',
+        version: '1.0.0',
+        protocol: 'MCP Streamable HTTP',
+        endpoint: 'https://aibox.im/.well-known/mcp',
+        methods: ['initialize', 'tools/list', 'tools/call'],
+        tools: ['get_aibox_info'],
+      },
+      { status: 200, headers: cors },
     );
   }
-
   if (request.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405, headers: { ...cors, Allow: 'POST, OPTIONS' } });
+    return new Response('Method Not Allowed', { status: 405, headers: { ...cors, Allow: 'GET, POST, OPTIONS' } });
   }
 
   return request.text().then((body) => {
