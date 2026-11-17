@@ -78,6 +78,7 @@ const websiteLd = {
     <link rel="canonical" href={canonical} />
     <!-- llms.txt 关联（llms.txt 规范：首页声明）+ 内容日期信号 -->
     <link rel="alternate" type="text/markdown" title="llms.txt" href="/llms.txt" />
+    <link rel="mcp" href="https://aibox.im/.well-known/mcp" title="AiBOX read-only MCP server" />
     <meta property="article:modified_time" content={buildTime} />
     <!-- hreflang：zh/en 互指（绝对地址，生产域规范） -->
     <link rel="alternate" hreflang="en" href={`${SITE}${path.replace(`/${lang}/`, '/en/')}`} />

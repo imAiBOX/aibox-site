@@ -148,3 +148,41 @@ try {
 }
 
 console.log(`[gen-meta] done — index + ${ids.length} app(s) + locales under ${DIST_META}`);
+
+// Full llms context: expand the compact llms.txt with every catalog entry and guide link.
+try {
+  const parsed = JSON.parse(index);
+  const lines = [
+    '# AiBOX.im — full app catalog',
+    '',
+    `> Full build-time catalog snapshot: ${ids.length} applications. Source: GitHub registry.`,
+    '',
+    '## Apps',
+    '',
+  ];
+  for (const id of ids) {
+    const text = await fetchText(`apps/${id}/app.json`);
+    if (!text) continue;
+    let app;
+    try { app = JSON.parse(text); } catch { continue; }
+    const name = typeof app.name === 'string' ? app.name : id;
+    const tagline = app.tagline?.en || app.description?.en || '';
+    const category = app.category || 'other';
+    const platforms = Array.isArray(app.platforms) ? app.platforms.join(', ') : '';
+    lines.push(`### ${name} (${id})`, '');
+    if (tagline) lines.push(tagline, '');
+    lines.push(`- Category: ${category}`, `- Platforms: ${platforms || 'see app profile'}`,
+      `- Install guide: https://aibox.im/en/apps/${id}/`,
+      `- Chinese guide: https://aibox.im/zh/apps/${id}/`,
+      `- Machine profile: https://aibox.im/meta/apps/${id}/app.json`, '');
+  }
+  lines.push('## Agent endpoints', '',
+    '- Registry index: https://aibox.im/meta/index.json',
+    '- Agent policy: https://aibox.im/agents.md',
+    '- MCP: https://aibox.im/.well-known/mcp',
+    '- OpenAPI: https://aibox.im/openapi.json', '');
+  writeFileSync(join('dist', 'llms-full.txt'), lines.join('\n'));
+  console.log(`[gen-meta] llms-full.txt (${ids.length} apps)`);
+} catch (e) {
+  console.warn('[gen-meta] warn: full llms generation failed —', e.message);
+}
