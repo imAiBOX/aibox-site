@@ -50,7 +50,7 @@
     "/meta/apps/{id}/app.json": {
       "get": {
         "summary": "Full app profile",
-        "description": "Channels (direct/mirror/proxy) with sha256, install/probe spec, maintenance data paths and risk notes. The catalog currently lists 21 apps; ids are available from /meta/index.json.",
+        "description": "Channels (direct/mirror/proxy) with sha256, install/probe spec, maintenance data paths and risk notes. The catalog currently lists 26 apps; ids are available from /meta/index.json.",
         "parameters": [
           {
             "name": "id",
@@ -66,7 +66,10 @@
                 "jan",
                 "cline",
                 "comfyui",
-                "sillytavern"
+                "sillytavern",
+                "pi",
+                "opencode",
+                "goose"
               ]
             },
             "example": "openclaw"

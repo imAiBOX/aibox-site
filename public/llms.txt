@@ -16,8 +16,8 @@ AiBOX.im is the official website for the AiBOX desktop app (open source, English
 
 ## App catalog (21 apps)
 
-- Example pages: [OpenClaw](https://aibox.im/en/apps/openclaw/), [Ollama](https://aibox.im/en/apps/ollama/), [Cherry Studio](https://aibox.im/en/apps/cherry-studio/), [Chatbox](https://aibox.im/en/apps/chatbox/), [Jan](https://aibox.im/en/apps/jan/), [Cline](https://aibox.im/en/apps/cline/), [ComfyUI](https://aibox.im/en/apps/comfyui/), [SillyTavern](https://aibox.im/en/apps/sillytavern/)
-- 21 apps in total — full list with difficulty, platforms and status: [GET /meta/index.json](https://aibox.im/meta/index.json). Every app also has an install-guide page at `https://aibox.im/en/apps/{id}/` (and `/zh/`).
+- Example pages: [OpenClaw](https://aibox.im/en/apps/openclaw/), [Ollama](https://aibox.im/en/apps/ollama/), [Cherry Studio](https://aibox.im/en/apps/cherry-studio/), [Chatbox](https://aibox.im/en/apps/chatbox/), [Jan](https://aibox.im/en/apps/jan/), [Cline](https://aibox.im/en/apps/cline/), [ComfyUI](https://aibox.im/en/apps/comfyui/), [SillyTavern](https://aibox.im/en/apps/sillytavern/), [Pi](https://aibox.im/en/apps/pi/), [OpenCode](https://aibox.im/en/apps/opencode/), [Goose](https://aibox.im/en/apps/goose/)
+- 26 apps in total — full list with difficulty, platforms and status: [GET /meta/index.json](https://aibox.im/meta/index.json). Every app also has an install-guide page at `https://aibox.im/en/apps/{id}/` (and `/zh/`).
 
 ## Data & API (for AI agents)
 
