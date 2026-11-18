@@ -19,6 +19,8 @@ const BRANCH = 'main';
 const SOURCES = [
   (rel) => `https://raw.githubusercontent.com/${OWNER_REPO}/${BRANCH}/${rel}`,
   (rel) => `https://cdn.jsdelivr.net/gh/${OWNER_REPO}@${BRANCH}/${rel}`,
+  // 线上 meta 镜像（本站上一次部署产物）——raw/jsdelivr 同时不可达时的兵家
+  (rel) => `https://aibox.im/meta/${rel}`,
 ];
 
 /** 拉取 registry 文件原文（双源轮询，全挂 → null） */
@@ -58,12 +60,54 @@ async function fetchJsonText(rel) {
   }
 }
 
+/**
+ * 拉取目录索引：并发请求全部源，取应用数最多的那份。
+ * 为什么不能只取第一个成功源：jsdelivr 会缓存旧 commit（2026-11-19 实测同一
+ * registryVersion 却是 26 apps），raw 短暂失败时回退过去会写出陈旧目录，
+ * 连带 site 的 AI 文档总数断言（check-routes）跟着红。
+ */
+async function fetchIndexText() {
+  const one = async (url) => {
+    try {
+      const res = await fetch(url, {
+        headers: { accept: 'application/json' },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!res.ok) return null;
+      return await res.text();
+    } catch {
+      return null;
+    }
+  };
+  const results = await Promise.all(SOURCES.map((f) => one(f('index.json'))));
+  const docs = results.filter((t) => {
+    if (!t) return false;
+    try {
+      JSON.parse(t);
+      return true;
+    } catch {
+      return false;
+    }
+  });
+  if (!docs.length) return null;
+  const best = docs.reduce((a, b) => {
+    const na = JSON.parse(a).apps?.length ?? 0;
+    const nb = JSON.parse(b).apps?.length ?? 0;
+    return nb > na ? b : a;
+  });
+  const sizes = new Set(docs.map((t) => JSON.parse(t).apps?.length ?? 0));
+  if (sizes.size > 1) {
+    console.warn(`[gen-meta] warn: sources disagree on catalog size (${[...sizes].join(' vs ')}) — using the largest`);
+  }
+  return best;
+}
+
 if (!existsSync('dist')) {
   console.warn('[gen-meta] dist/ 不存在 — run astro build first; skip');
   process.exit(0);
 }
 
-const index = await fetchJsonText('index.json');
+const index = await fetchIndexText();
 if (index === null) {
   console.warn('[gen-meta] registry index unreachable — meta omitted (degraded, build ok)');
   process.exit(0);
