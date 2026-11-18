@@ -61,10 +61,11 @@ async function fetchJsonText(rel) {
 }
 
 /**
- * 拉取目录索引：并发请求全部源，取应用数最多的那份。
+ * 拉取目录索引：并发请求全部源，挑"最新"的那份。
  * 为什么不能只取第一个成功源：jsdelivr 会缓存旧 commit（2026-11-19 实测同一
  * registryVersion 却是 26 apps），raw 短暂失败时回退过去会写出陈旧目录，
  * 连带 site 的 AI 文档总数断言（check-routes）跟着红。
+ * "最新"判据：registryVersion 为主（日期+序号，逐次递增），相同时退回 apps 数量。
  */
 async function fetchIndexText() {
   const one = async (url) => {
@@ -90,16 +91,19 @@ async function fetchIndexText() {
     }
   });
   if (!docs.length) return null;
-  const best = docs.reduce((a, b) => {
-    const na = JSON.parse(a).apps?.length ?? 0;
-    const nb = JSON.parse(b).apps?.length ?? 0;
-    return nb > na ? b : a;
-  });
-  const sizes = new Set(docs.map((t) => JSON.parse(t).apps?.length ?? 0));
-  if (sizes.size > 1) {
-    console.warn(`[gen-meta] warn: sources disagree on catalog size (${[...sizes].join(' vs ')}) — using the largest`);
+  const parsed = docs.map((t) => JSON.parse(t));
+  const newer = (a, b) => {
+    const av = String(a.registryVersion || '');
+    const bv = String(b.registryVersion || '');
+    if (bv !== av) return bv > av ? b : a;
+    return (b.apps?.length ?? 0) > (a.apps?.length ?? 0) ? b : a;
+  };
+  const best = parsed.reduce(newer);
+  const versions = new Set(parsed.map((d) => `${d.registryVersion || '?'}/${d.apps?.length ?? 0}`));
+  if (versions.size > 1) {
+    console.warn(`[gen-meta] warn: sources disagree (${[...versions].join(' vs ')}) — using ${best.registryVersion}/${best.apps?.length}`);
   }
-  return best;
+  return JSON.stringify(best);
 }
 
 if (!existsSync('dist')) {
