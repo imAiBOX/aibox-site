@@ -16,7 +16,7 @@ API-key configuration, and verifies with a real test message. No terminal, no ad
 - Latest release: https://github.com/imAiBOX/aibox-app/releases/latest (asset `AiBOX-vX.Y.Z-windows-x64.exe`)
 - Checksums: published on the download page and derived from GitHub Release asset digests
 - Languages: English default; Chinese at /zh/ and in-app
-- Catalog size: 28 apps (example ids: openclaw, ollama, cherry-studio, chatbox, jan, cline, comfyui, sillytavern, pi, opencode, goose, 5ire, dyad) — full list in `GET /meta/index.json`
+- Catalog size: 29 apps (example ids: openclaw, ollama, cherry-studio, chatbox, jan, cline, comfyui, sillytavern, pi, opencode, goose, 5ire, dyad, zed) — full list in `GET /meta/index.json`
 
 ## Machine-readable endpoints (no auth, read-only)
 
