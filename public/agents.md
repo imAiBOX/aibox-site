@@ -17,7 +17,7 @@ API-key configuration, and verifies with a real test message. No terminal, no ad
 - Checksums: published on the download page and derived from GitHub Release asset digests
 - Languages: English default; Chinese at /zh/ and in-app
 - Catalog size: 29 apps (example ids: openclaw, ollama, cherry-studio, chatbox, jan, cline, comfyui, sillytavern, pi, opencode, goose, 5ire, dyad, zed) — full list in `GET /meta/index.json`
-- Topic pages: https://aibox.im/en/collections/coding/ — AI coding tools compared (Cline, Continue, Aider, Zed, Codex, OpenCode, Pi) · https://aibox.im/en/collections/local-models/ — run models locally (Ollama, GPT4All, Llamafile + Chatbox, Cherry Studio, LobeHub)
+- Topic pages: https://aibox.im/en/collections/coding/ — AI coding tools compared (Cline, Continue, Aider, Zed, Codex, OpenCode, Pi) · https://aibox.im/en/collections/local-models/ — run models locally (Ollama, GPT4All, Llamafile + Chatbox, Cherry Studio, LobeHub) · https://aibox.im/en/collections/chat-clients/ — chat clients compared (Chatbox, Cherry Studio, LobeHub, Jan, AnythingLLM, SillyTavern)
 
 ## Machine-readable endpoints (no auth, read-only)
 

@@ -502,6 +502,60 @@ const en = {
       ctaH: 'Want one installed?',
       cta: 'Download AiBOX',
     },
+    chatClients: {
+      title: 'Chat with AI — pick your client',
+      lede: 'Six chat clients that behave nothing alike. Pick by what you actually want to do with them.',
+      sourceNote: 'Every tool below is installed by AiBOX with a verified download, on Windows and macOS.',
+      pickTitle: 'Which one should I pick?',
+      viewGuide: 'Read the guide',
+      backToCatalog: 'Back to the full catalog',
+      groups: [
+        {
+          title: 'Everyday chat',
+          note: 'Straightforward chat windows — switch between model providers freely.',
+          items: {
+            chatbox: {
+              when: 'You want a small, clean chat window',
+              detail: 'Lightweight and simple: bring your own key, and your conversations stay on your machine.',
+            },
+            'cherry-studio': {
+              when: 'You want a polished desktop workspace',
+              detail: 'Chat, coding help and translation in one app, with many providers connected at once.',
+            },
+          },
+        },
+        {
+          title: 'Full workspaces',
+          note: 'More than chatting: your own documents, several agents at once, memory and MCP tools.',
+          items: {
+            lobechat: {
+              when: 'You want the most features in one client',
+              detail: 'Five cloud providers plus local Ollama, with multi-agent chats, memory and MCP tools.',
+            },
+            jan: {
+              when: 'You want it to keep working offline',
+              detail: 'Offline-first workspace: chats, documents and assistants all stay on your machine.',
+            },
+            'anything-llm': {
+              when: 'You want to ask questions about your own files',
+              detail: 'Drop documents in and they become a private knowledge base — answers cite their sources.',
+            },
+          },
+        },
+        {
+          title: 'Roleplay',
+          note: 'Character-driven chat — a different job from "ask a question, get an answer".',
+          items: {
+            sillytavern: {
+              when: 'You want character-driven stories',
+              detail: 'Runs locally in your browser. Needs Git and Node.js 18+ installed first — the one setup step here.',
+            },
+          },
+        },
+      ],
+      ctaH: 'Want one installed?',
+      cta: 'Download AiBOX',
+    },
     localModels: {
       title: 'Run AI models on your own computer',
       lede: 'No API key, no monthly bill, no data leaving your machine — pick a runner, then a client that talks to it.',
@@ -1199,6 +1253,60 @@ const zh: PagesDict = {
             lobechat: {
               when: '你想要一个自托管的网页版聊天',
               detail: '开源聊天界面，可以跑在自己电脑上，也可以放到服务器。',
+            },
+          },
+        },
+      ],
+      ctaH: '想装一个？',
+      cta: '下载 AiBOX',
+    },
+    chatClients: {
+      title: '跟 AI 聊天，用哪个客户端？',
+      lede: '六个用法完全不同的聊天客户端——按你到底想拿它干什么来挑。',
+      sourceNote: '下面每个工具都能用 AiBOX 安装，Windows 和 macOS 都行，下载带校验。',
+      pickTitle: '我该选哪个？',
+      viewGuide: '看教程',
+      backToCatalog: '回到完整目录',
+      groups: [
+        {
+          title: '日常聊天',
+          note: '就是聊天窗口，随手切换模型厂商。',
+          items: {
+            chatbox: {
+              when: '你想要一个小而干净的聊天窗口',
+              detail: '轻量简单：key 自己带，对话记录留在你自己电脑上。',
+            },
+            'cherry-studio': {
+              when: '你想要一个打磨好的桌面工作台',
+              detail: '聊天、写代码辅助、翻译一个应用搞定，同时接多家模型。',
+            },
+          },
+        },
+        {
+          title: '功能更全的工作台',
+          note: '不止聊天：本地文档、多个智能体、记忆、MCP 工具。',
+          items: {
+            lobechat: {
+              when: '你想在一个客户端里要最多功能',
+              detail: '五家云端厂商加本地 Ollama，还有多智能体对话、记忆和 MCP 工具。',
+            },
+            jan: {
+              when: '你希望断网也能继续用',
+              detail: '离线优先的工作台：对话、文档、助手全在本机。',
+            },
+            'anything-llm': {
+              when: '你想拿自己的文件问问题',
+              detail: '丢进文档就变成私有知识库，回答还会标出出处。',
+            },
+          },
+        },
+        {
+          title: '角色扮演',
+          note: '角色驱动的对话——跟「问一句答一句」是两种活。',
+          items: {
+            sillytavern: {
+              when: '你想要角色驱动的剧情',
+              detail: '在本机浏览器里跑。需要先装好 Git 和 Node.js 18+，是这几个里唯一有前置步骤的。',
             },
           },
         },

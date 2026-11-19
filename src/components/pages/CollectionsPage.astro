@@ -19,6 +19,11 @@ const COLLECTIONS = {
     { ids: ['ollama', 'gpt4all', 'llamafile'] },
     { ids: ['chatbox', 'cherry-studio', 'lobechat'] },
   ],
+  chatClients: [
+    { ids: ['chatbox', 'cherry-studio'] },
+    { ids: ['lobechat', 'jan', 'anything-llm'] },
+    { ids: ['sillytavern'] },
+  ],
 } as const;
 
 interface Props {
@@ -63,6 +68,10 @@ const titles: Record<string, { en: string; zh: string }> = {
     en: 'Run AI models on your own computer — install with AiBOX | aibox.im',
     zh: '在自己电脑上跑 AI 模型 - AiBOX 一键安装 | aibox.im',
   },
+  chatClients: {
+    en: 'Chat with AI — pick your client | aibox.im',
+    zh: '跟 AI 聊天，用哪个客户端？ - AiBOX 一键安装 | aibox.im',
+  },
 };
 const descs: Record<string, { en: string; zh: string }> = {
   coding: {
@@ -72,6 +81,10 @@ const descs: Record<string, { en: string; zh: string }> = {
   localModels: {
     en: 'Run open AI models on your own computer — no API key, no bill, no data leaving your machine. Pick an engine, then a client that talks to it.',
     zh: '在自己电脑上跑开放 AI 模型——不用 API key、不用月费、数据不出机器。先选引擎，再选客户端。',
+  },
+  chatClients: {
+    en: 'Six AI chat clients compared: everyday chat windows, full workspaces with memory and MCP tools, and roleplay frontends. All installable with AiBOX.',
+    zh: '六个 AI 聊天客户端横向对比：日常聊天窗口、带记忆和 MCP 工具的完整工作台、还有角色扮演前端。全部可用 AiBOX 一键安装。',
   },
 };
 const title = lang === 'zh' ? titles[collection].zh : titles[collection].en;

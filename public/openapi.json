@@ -211,6 +211,24 @@
           }
         }
       }
+    },
+    "/collections/chat-clients/": {
+      "get": {
+        "summary": "Topic page: AI chat clients compared",
+        "description": "Six AI chat clients compared by what you want to do with them: everyday chat (Chatbox, Cherry Studio), full workspaces with memory and MCP tools (LobeHub, Jan, AnythingLLM) and roleplay frontends (SillyTavern). English at /en/collections/chat-clients/, Chinese at /zh/collections/chat-clients/.",
+        "responses": {
+          "200": {
+            "description": "HTML page",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
