@@ -224,6 +224,14 @@ try {
       `- Chinese guide: https://aibox.im/zh/apps/${id}/`,
       `- Machine profile: https://aibox.im/meta/apps/${id}/app.json`, '');
   }
+  // Topic pages (collections): curated "which one should I pick" guides.
+  // Kept in sync with src/components/pages/CollectionsPage.astro (COLLECTIONS map).
+  lines.push('## Topics', '',
+    'Curated comparison guides — pick by what you actually want to do:',
+    '- AI coding tools: https://aibox.im/en/collections/coding/ (Cline, Continue, Aider, Zed, Codex, OpenCode, Pi)',
+    '- Run models locally: https://aibox.im/en/collections/local-models/ (Ollama, GPT4All, Llamafile + Chatbox, Cherry Studio, LobeHub)',
+    '- Chat clients: https://aibox.im/en/collections/chat-clients/ (Chatbox, Cherry Studio, LobeHub, Jan, AnythingLLM, SillyTavern)',
+    '- Chinese versions: replace /en/ with /zh/ in the paths above', '');
   lines.push('## Agent endpoints', '',
     '- Registry index: https://aibox.im/meta/index.json',
     '- Agent policy: https://aibox.im/agents.md',
