@@ -193,6 +193,24 @@
           }
         }
       }
+    },
+    "/collections/local-models/": {
+      "get": {
+        "summary": "Topic page: run AI models locally",
+        "description": "How to run open AI models on your own computer: an engine (Ollama, GPT4All, Llamafile) plus chat clients that connect to it (Chatbox, Cherry Studio, LobeHub). English at /en/collections/local-models/, Chinese at /zh/collections/local-models/.",
+        "responses": {
+          "200": {
+            "description": "HTML page",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

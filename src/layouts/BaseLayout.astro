@@ -117,7 +117,17 @@ const websiteLd = {
       </a>
       <nav class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
         <a href={`/${lang}/apps/`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.catalog}</a>
-        <a href={`/${lang}/collections/coding/`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.collections}</a>
+        <details class="relative">
+          <summary class="cursor-pointer list-none text-aibox-text2 hover:text-aibox-green">{d.nav.collections}</summary>
+          <div class="absolute right-0 z-20 mt-2 w-56 border border-aibox-line bg-aibox-raised p-2" style="border-radius:4px">
+            <a href={`/${lang}/collections/coding/`} class="block px-3 py-2 text-sm text-aibox-text1 no-underline hover:text-aibox-green">
+              {d.nav.topicCoding}
+            </a>
+            <a href={`/${lang}/collections/local-models/`} class="block px-3 py-2 text-sm text-aibox-text1 no-underline hover:text-aibox-green">
+              {d.nav.topicLocalModels}
+            </a>
+          </div>
+        </details>
         <a href={`/${lang}/download/`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.download}</a>
         <a href={`/${lang}/faq/`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.faq}</a>
         <a href={`/${lang}/about/`} class="text-aibox-text2 no-underline hover:text-aibox-green">{d.nav.about}</a>

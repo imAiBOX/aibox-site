@@ -11,6 +11,7 @@ AiBOX.im is the official website for the AiBOX desktop app (open source, English
 - [Download](https://aibox.im/en/download/): portable Windows build, SHA256, SmartScreen guide
 - [App catalog](https://aibox.im/en/apps/): every app AiBOX can install, with difficulty and platform badges
 - [AI coding tools topic](https://aibox.im/en/collections/coding/): seven AI coding tools compared side by side — pick the one that matches where you work
+- [Run models locally topic](https://aibox.im/en/collections/local-models/): run open AI models on your own computer — an engine (Ollama, GPT4All, Llamafile) plus clients that talk to it
 - [OpenClaw setup guide](https://aibox.im/en/apps/openclaw/): install tutorial + model API-key configuration (six provider paths)
 - [FAQ](https://aibox.im/en/faq/) · [Network self-check](https://aibox.im/en/guides/network-selfcheck/) · [SmartScreen guide](https://aibox.im/en/guides/smartscreen/)
 - [Privacy](https://aibox.im/en/privacy/) · [About](https://aibox.im/en/about/)

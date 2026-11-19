@@ -457,36 +457,96 @@ const en = {
       pickTitle: 'Which one should I pick?',
       viewGuide: 'Read the guide',
       backToCatalog: 'Back to the full catalog',
-      items: {
-        cline: {
-          when: 'You live in VS Code and want a careful agent',
-          detail: 'Edits files, runs commands and browses the web — but asks before every step.',
+      groups: [
+        {
+          title: 'Plugins for your existing editor',
+          note: 'You keep your IDE; the AI joins you there.',
+          items: {
+            cline: {
+              when: 'You live in VS Code and want a careful agent',
+              detail: 'Edits files, runs commands and browses the web — but asks before every step.',
+            },
+            continue: {
+              when: 'You want autocomplete and chat side by side',
+              detail: 'VS Code and JetBrains plugin: chat-driven edits, autocomplete, multi-file changes.',
+            },
+          },
         },
-        continue: {
-          when: 'You want autocomplete and chat side by side',
-          detail: 'VS Code and JetBrains plugin: chat-driven edits, autocomplete, multi-file changes.',
+        {
+          title: 'Terminal and editor of their own',
+          note: 'These bring their own workspace instead of plugging into yours.',
+          items: {
+            aider: {
+              when: 'You live in the terminal and in git',
+              detail: 'Pair programs in your shell and commits as it goes — works with any major model.',
+            },
+            zed: {
+              when: 'You want a fast editor with AI built in',
+              detail: 'Native Rust editor that starts instantly, with an agent panel and plug-in external agents.',
+            },
+            codex: {
+              when: 'You want OpenAI’s coding agent',
+              detail: 'One self-contained executable: hand it a task and it edits code and runs commands.',
+            },
+            opencode: {
+              when: 'You want a desktop app and a terminal TUI',
+              detail: 'MIT-licensed, works with OpenRouter, Anthropic or a local model.',
+            },
+            pi: {
+              when: 'You want an agent toolkit you can shape yourself',
+              detail: 'Unified model API, agent loop, TUI and coding CLI — self-contained, no Node needed.',
+            },
+          },
         },
-        aider: {
-          when: 'You live in the terminal and in git',
-          detail: 'Pair programs in your shell and commits as it goes — works with any major model.',
+      ],
+      ctaH: 'Want one installed?',
+      cta: 'Download AiBOX',
+    },
+    localModels: {
+      title: 'Run AI models on your own computer',
+      lede: 'No API key, no monthly bill, no data leaving your machine — pick a runner, then a client that talks to it.',
+      sourceNote: 'Every tool below is installed by AiBOX with a verified download, on Windows and macOS.',
+      pickTitle: 'How it fits together',
+      viewGuide: 'Read the guide',
+      backToCatalog: 'Back to the full catalog',
+      groups: [
+        {
+          title: 'Step 1 — the engine that runs the model',
+          note: 'Install one of these first. It downloads model weights and serves them on your machine.',
+          items: {
+            ollama: {
+              when: 'You want the easiest path, and the most model choices',
+              detail: 'One command runs thousands of open models (Llama, Qwen, Gemma…). Also the base for image and video tools.',
+            },
+            gpt4all: {
+              when: 'You want a desktop app with a friendly UI',
+              detail: 'Nomic’s offline app: chat and build local document libraries, no API calls at all.',
+            },
+            llamafile: {
+              when: 'You want the smallest possible footprint',
+              detail: 'Mozilla’s single-file runner: one executable plus a GGUF file is a whole chat server.',
+            },
+          },
         },
-        zed: {
-          when: 'You want a fast editor with AI built in',
-          detail: 'Native Rust editor that starts instantly, with an agent panel and plug-in external agents.',
+        {
+          title: 'Step 2 — clients that connect to it',
+          note: 'These talk to a local engine (Ollama) instead of a paid cloud API.',
+          items: {
+            chatbox: {
+              when: 'You want a clean chat window',
+              detail: 'Desktop chat client that connects to your local Ollama models as well as cloud providers.',
+            },
+            'cherry-studio': {
+              when: 'You want many providers in one place',
+              detail: 'Multi-model desktop client — cloud APIs and your own local models, side by side.',
+            },
+            lobechat: {
+              when: 'You want a self-hosted web chat',
+              detail: 'Open-source chat UI you can run on your own machine or a server.',
+            },
+          },
         },
-        codex: {
-          when: 'You want OpenAI’s coding agent',
-          detail: 'One self-contained executable: hand it a task and it edits code and runs commands.',
-        },
-        opencode: {
-          when: 'You want a desktop app and a terminal TUI',
-          detail: 'MIT-licensed, works with OpenRouter, Anthropic or a local model.',
-        },
-        pi: {
-          when: 'You want an agent toolkit you can shape yourself',
-          detail: 'Unified model API, agent loop, TUI and coding CLI — self-contained, no Node needed.',
-        },
-      },
+      ],
       ctaH: 'Want one installed?',
       cta: 'Download AiBOX',
     },
@@ -1053,36 +1113,96 @@ const zh: PagesDict = {
       pickTitle: '我该选哪个？',
       viewGuide: '看教程',
       backToCatalog: '回到完整目录',
-      items: {
-        cline: {
-          when: '你天天在 VS Code 里，想要个谨慎的智能体',
-          detail: '改文件、跑命令、查网页都行，但每一步都先问你。',
+      groups: [
+        {
+          title: '先选：装进现有编辑器的插件',
+          note: '编辑器照旧用，AI 住进去。',
+          items: {
+            cline: {
+              when: '你天天在 VS Code 里，想要个谨慎的智能体',
+              detail: '改文件、跑命令、查网页都行，但每一步都先问你。',
+            },
+            continue: {
+              when: '你想同时要补全和对话',
+              detail: 'VS Code 与 JetBrains 插件：对话式改代码、补全、多文件修改。',
+            },
+          },
         },
-        continue: {
-          when: '你想同时要补全和对话',
-          detail: 'VS Code 与 JetBrains 插件：对话式改代码、补全、多文件修改。',
+        {
+          title: '后选：自带终端或编辑器的完整工具',
+          note: '这类有自己的工作台，不用你现有的编辑器。',
+          items: {
+            aider: {
+              when: '你习惯终端和 git',
+              detail: '在命令行里结对编程，边写边提交，兼容所有主流模型。',
+            },
+            zed: {
+              when: '你想要一个快、且自带 AI 的编辑器',
+              detail: 'Rust 原生，秒开，带智能体面板，也能挂外部智能体。',
+            },
+            codex: {
+              when: '你就要 OpenAI 官方的编码智能体',
+              detail: '一个自带运行时的可执行文件：派个任务，它自己改代码跑命令。',
+            },
+            opencode: {
+              when: '你想要桌面应用加终端 TUI',
+              detail: 'MIT 许可，支持 OpenRouter、Anthropic 或本地模型。',
+            },
+            pi: {
+              when: '你想自己搭一个智能体工具箱',
+              detail: '统一的模型接口、智能体循环、TUI 和编码 CLI，自带运行时，不需 Node。',
+            },
+          },
         },
-        aider: {
-          when: '你习惯终端和 git',
-          detail: '在命令行里结对编程，边写边提交，兼容所有主流模型。',
+      ],
+      ctaH: '想装一个？',
+      cta: '下载 AiBOX',
+    },
+    localModels: {
+      title: '在自己电脑上跑 AI 模型',
+      lede: '不用 API key、不用月费、数据不出机器——先装一个引擎，再装一个跟它说话的客户端。',
+      sourceNote: '下面每个工具都能用 AiBOX 安装，Windows 和 macOS 都行，下载带校验。',
+      pickTitle: '它们是怎么配合的',
+      viewGuide: '看教程',
+      backToCatalog: '回到完整目录',
+      groups: [
+        {
+          title: '第一步：负责跑模型的引擎',
+          note: '先装这个。它负责下载模型权重，并在你机器上把模型跑起来。',
+          items: {
+            ollama: {
+              when: '你想走最简单的路，模型选择也最多',
+              detail: '一条命令跑几千个开放模型（Llama、Qwen、Gemma…），也是图像与视频工具的地基。',
+            },
+            gpt4all: {
+              when: '你更想要一个界面友好的桌面应用',
+              detail: 'Nomic 的离线应用：聊天、构建本地文档库，全程不调 API。',
+            },
+            llamafile: {
+              when: '你想占用空间最小',
+              detail: 'Mozilla 的单文件运行器：一个可执行文件加一个 GGUF 就是完整的聊天服务器。',
+            },
+          },
         },
-        zed: {
-          when: '你想要一个快、且自带 AI 的编辑器',
-          detail: 'Rust 原生，秒开，带智能体面板，也能挂外部智能体。',
+        {
+          title: '第二步：跟它对话的客户端',
+          note: '这些可以直接连本地引擎（Ollama），而不是付费的云端 API。',
+          items: {
+            chatbox: {
+              when: '你想要一个干净的聊天窗口',
+              detail: '桌面聊天客户端，能连本地 Ollama 模型，也能连云端供应商。',
+            },
+            'cherry-studio': {
+              when: '你想把很多家模型放在一起看',
+              detail: '多模型桌面客户端——云端 API 和你自己本地的模型并排摆着。',
+            },
+            lobechat: {
+              when: '你想要一个自托管的网页版聊天',
+              detail: '开源聊天界面，可以跑在自己电脑上，也可以放到服务器。',
+            },
+          },
         },
-        codex: {
-          when: '你就要 OpenAI 官方的编码智能体',
-          detail: '一个自带运行时的可执行文件：派个任务，它自己改代码跑命令。',
-        },
-        opencode: {
-          when: '你想要桌面应用加终端 TUI',
-          detail: 'MIT 许可，支持 OpenRouter、Anthropic 或本地模型。',
-        },
-        pi: {
-          when: '你想自己搭一个智能体工具箱',
-          detail: '统一的模型接口、智能体循环、TUI 和编码 CLI，自带运行时，不需 Node。',
-        },
-      },
+      ],
       ctaH: '想装一个？',
       cta: '下载 AiBOX',
     },
