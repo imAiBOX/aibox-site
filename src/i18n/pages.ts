@@ -449,6 +449,49 @@ const en = {
     },
   },
 
+  collections: {
+    coding: {
+      title: 'AI coding tools',
+      lede: 'Seven ways to let an AI write code with you — pick the one that matches where you work.',
+      sourceNote: 'Every tool below is installed by AiBOX with a verified download, on Windows and macOS.',
+      pickTitle: 'Which one should I pick?',
+      viewGuide: 'Read the guide',
+      backToCatalog: 'Back to the full catalog',
+      items: {
+        cline: {
+          when: 'You live in VS Code and want a careful agent',
+          detail: 'Edits files, runs commands and browses the web — but asks before every step.',
+        },
+        continue: {
+          when: 'You want autocomplete and chat side by side',
+          detail: 'VS Code and JetBrains plugin: chat-driven edits, autocomplete, multi-file changes.',
+        },
+        aider: {
+          when: 'You live in the terminal and in git',
+          detail: 'Pair programs in your shell and commits as it goes — works with any major model.',
+        },
+        zed: {
+          when: 'You want a fast editor with AI built in',
+          detail: 'Native Rust editor that starts instantly, with an agent panel and plug-in external agents.',
+        },
+        codex: {
+          when: 'You want OpenAI’s coding agent',
+          detail: 'One self-contained executable: hand it a task and it edits code and runs commands.',
+        },
+        opencode: {
+          when: 'You want a desktop app and a terminal TUI',
+          detail: 'MIT-licensed, works with OpenRouter, Anthropic or a local model.',
+        },
+        pi: {
+          when: 'You want an agent toolkit you can shape yourself',
+          detail: 'Unified model API, agent loop, TUI and coding CLI — self-contained, no Node needed.',
+        },
+      },
+      ctaH: 'Want one installed?',
+      cta: 'Download AiBOX',
+    },
+  },
+
   landing: {
     hero: {
       eyebrow: 'App guide',
@@ -999,6 +1042,49 @@ const zh: PagesDict = {
       heading: '有问题？',
       body: '步骤不对、报错看不懂、错别字——开个 issue，有人看。',
       cta: '打开 GitHub issues',
+    },
+  },
+
+  collections: {
+    coding: {
+      title: 'AI 编程工具',
+      lede: '七种让 AI 陪你写代码的方式——挑一个跟你工作方式合的。',
+      sourceNote: '下面每个工具都能用 AiBOX 安装，Windows 和 macOS 都行，下载带校验。',
+      pickTitle: '我该选哪个？',
+      viewGuide: '看教程',
+      backToCatalog: '回到完整目录',
+      items: {
+        cline: {
+          when: '你天天在 VS Code 里，想要个谨慎的智能体',
+          detail: '改文件、跑命令、查网页都行，但每一步都先问你。',
+        },
+        continue: {
+          when: '你想同时要补全和对话',
+          detail: 'VS Code 与 JetBrains 插件：对话式改代码、补全、多文件修改。',
+        },
+        aider: {
+          when: '你习惯终端和 git',
+          detail: '在命令行里结对编程，边写边提交，兼容所有主流模型。',
+        },
+        zed: {
+          when: '你想要一个快、且自带 AI 的编辑器',
+          detail: 'Rust 原生，秒开，带智能体面板，也能挂外部智能体。',
+        },
+        codex: {
+          when: '你就要 OpenAI 官方的编码智能体',
+          detail: '一个自带运行时的可执行文件：派个任务，它自己改代码跑命令。',
+        },
+        opencode: {
+          when: '你想要桌面应用加终端 TUI',
+          detail: 'MIT 许可，支持 OpenRouter、Anthropic 或本地模型。',
+        },
+        pi: {
+          when: '你想自己搭一个智能体工具箱',
+          detail: '统一的模型接口、智能体循环、TUI 和编码 CLI，自带运行时，不需 Node。',
+        },
+      },
+      ctaH: '想装一个？',
+      cta: '下载 AiBOX',
     },
   },
 

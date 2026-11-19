@@ -13,6 +13,7 @@ const en = {
   nav: {
     home: 'Home',
     catalog: 'Apps',
+    collections: 'Topics',
     download: 'Download',
     faq: 'FAQ',
     about: 'About',
@@ -66,6 +67,7 @@ const zh: Dict = {
   nav: {
     home: '首页',
     catalog: '应用目录',
+    collections: '专题',
     download: '下载',
     faq: '常见问题',
     about: '关于',

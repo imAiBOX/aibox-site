@@ -175,6 +175,24 @@
           }
         }
       }
+    },
+    "/collections/coding/": {
+      "get": {
+        "summary": "Topic page: AI coding tools compared",
+        "description": "Human-curated comparison of seven AI coding tools (Cline, Continue, Aider, Zed, Codex, OpenCode, Pi) with a \"which one should I pick\" list. English at /en/collections/coding/, Chinese at /zh/collections/coding/.",
+        "responses": {
+          "200": {
+            "description": "HTML page",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
