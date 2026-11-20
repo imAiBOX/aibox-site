@@ -161,6 +161,25 @@ const en = {
     contact: 'Email hi@aibox.im — we answer in plain language.',
   },
 
+  docs: {
+    title: 'How to use AiBOX',
+    description:
+      'Pick an app, let AiBOX download and verify it, and start using it. Guides for every app are here.',
+    stepsTitle: 'Three steps',
+    step1: 'Open AiBOX and pick the app you want from the list.',
+    step2: 'Click Start install. AiBOX downloads the file and checks it is exactly what it should be.',
+    step3: 'Open the installed app and follow its own setup guide.',
+    appsTitle: 'App guides',
+    appsDesc: 'Every app has its own page with a step-by-step tutorial.',
+    guidesTitle: 'Common questions',
+    guideGatekeeper: 'macOS says "cannot open" — what to do',
+    guideSmartscreen: 'Windows says "unknown publisher" — what to do',
+    guideNetwork: 'Downloads are slow or fail — check your connection',
+    downloadCta: 'Download AiBOX',
+    catalogCta: 'Browse all apps',
+    feedbackCta: 'Report a problem',
+  },
+
   feedback: {
     title: 'Feedback',
     lede: 'Found a bug, or something did not install? Pick the fastest channel below.',
@@ -878,6 +897,24 @@ const zh: PagesDict = {
     ],
     contactH: '对本页有疑问',
     contact: '发邮件到 hi@aibox.im——我们用人话回复。',
+  },
+
+  docs: {
+    title: 'AiBOX 使用教程',
+    description: '挑一个应用，让 AiBOX 下载并校验它，然后直接用起来。每个应用的教程都在这里。',
+    stepsTitle: '三步就好',
+    step1: '打开 AiBOX，在列表里挑一个你需要的应用。',
+    step2: '点「开始安装」。AiBOX 会把安装包下载下来，并核对它确实是完整的那个文件。',
+    step3: '打开装好的应用，照着它自己的引导做一次设置。',
+    appsTitle: '各应用教程',
+    appsDesc: '每个应用都有单独的页面，写着一步步怎么用。',
+    guidesTitle: '常见问题',
+    guideGatekeeper: 'macOS 提示「无法打开」怎么办',
+    guideSmartscreen: 'Windows 提示「未知发布者」怎么办',
+    guideNetwork: '下载很慢或失败，先检查网络',
+    downloadCta: '下载 AiBOX',
+    catalogCta: '浏览全部应用',
+    feedbackCta: '反馈问题',
   },
 
   feedback: {

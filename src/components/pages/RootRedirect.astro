@@ -1,0 +1,35 @@
+---
+/**
+ * 根路径无语言前缀的兼容跳转（/docs、/feedback、/download）。
+ *
+ * **为什么需要**：安装器装完后的主 CTA「打开教程」原本指向 `/docs`，
+ * 「反馈」指向 `/feedback`，更新条的「去下载」指向 `/download/` ——
+ * 而站点真实路由是 `/zh/xxx/`、`/en/xxx/`（`[lang]` 前缀结构），
+ * 这三个根路径原本全是 404 → 用户点一下就被弹到错误页。
+ * 现在：根路径 302/refresh 到对应语言版，并保留手动切换链接。
+ */
+interface Props {
+  /** 语言版路径，如 '/docs/' */
+  path: string;
+  /** 页面标题（用于 404 兜底时也说得清） */
+  title: string;
+}
+const { path, title } = Astro.props;
+const target = `/en${path}`;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={`https://aibox.im/en${path}`} />
+    <meta http-equiv="refresh" content={`0;url=${target}`} />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+  </head>
+  <body style="background:#0A0A0A;color:#F2F4F7;font-family:system-ui,sans-serif;padding:24px">
+    <p>AiBOX.im · <a style="color:#B6FB50" href={`/en${path}`}>English</a> · <a style="color:#B6FB50" href={`/zh${path}`}>中文</a></p>
+  </body>
+</html>
