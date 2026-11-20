@@ -134,6 +134,39 @@ for (const [name, t] of [['llms.txt', llms], ['agents.md', agents]]) {
   }
 }
 
+// —— zh 页不得直出英文状态徽章（2026-11-20 实测踩坑：通用落地页已本地化，
+// 但 openclaw 专属页仍直出 "stable"，中文页小白看不懂）——
+// 英文页的徽章本来就是这些词，所以只扫 dist/zh。
+const STATUS_TOKENS = ['stable', 'preview', 'building', 'planned', 'available', 'ready', 'installable', 'experimental'];
+function collectHtml(dir) {
+  const out = [];
+  if (!existsSync(dir)) return out;
+  const walk = (d) => {
+    for (const name of readdirSync(d)) {
+      const p = join(d, name);
+      if (statSync(p).isDirectory()) walk(p);
+      else if (name.endsWith('.html')) out.push(p);
+    }
+  };
+  walk(dir);
+  return out;
+}
+const zhHtml = collectHtml(join(DIST, 'zh'));
+const zhRawStatus = [];
+for (const file of zhHtml) {
+  const html = readFileSync(file, 'utf8');
+  const re = new RegExp(`class="badge[^"]*">\\s*(${STATUS_TOKENS.join('|')})\\s*<`, 'g');
+  for (const m of html.matchAll(re)) {
+    zhRawStatus.push(`${file.replace(/^dist\//, '')}: ${m[1]}`);
+  }
+}
+if (zhRawStatus.length) {
+  const uniq = [...new Set(zhRawStatus)];
+  console.error(`[check-routes] zh 页直出英文状态徽章 — ${uniq.length} 处:`);
+  for (const e of uniq.slice(0, 20)) console.error('  - ' + e);
+  process.exit(1);
+}
+
 if (docErrors.length) {
   console.error(`[check-routes] AI 文档断言 FAIL — ${docErrors.length} 项:`);
   for (const e of docErrors) console.error('  - ' + e);

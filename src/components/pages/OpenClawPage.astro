@@ -8,6 +8,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PixelRule from '../../components/PixelRule.astro';
 import { fetchAppDetail, fetchRegistry } from '../../data/registry';
 import { pt, type Lang } from '../../i18n/pages';
+import { t } from '../../i18n/dict';
 
 interface Props {
   lang: Lang;
@@ -25,6 +26,17 @@ const platforms = (app?.platforms ?? ['windows', 'macos']).map((p) => platformNa
 const level = app?.difficulty ?? 0;
 const statusRaw = (app?.status ?? 'preview').toLowerCase();
 const statusCls = ['stable', 'available', 'ready', 'installable'].includes(statusRaw) ? 'badge-ok' : ['preview', 'building'].includes(statusRaw) ? 'badge-info' : '';
+// 状态徽章本地化（原文直出英文在中文页也显示 "stable"，小白看不懂）
+const dict = t(lang);
+const statusLabel: Record<string, string> = {
+  stable: dict.catalog.statusStable,
+  available: dict.catalog.statusAvailable,
+  ready: dict.catalog.statusReady,
+  installable: dict.catalog.statusInstallable,
+  preview: dict.catalog.statusPreview,
+  building: dict.catalog.statusBuilding,
+  planned: dict.catalog.statusPlanned,
+};
 
 // —— SEO 标题模板 ——
 const title =
@@ -94,7 +106,7 @@ const feedbackUrl = 'https://github.com/imAiBOX/aibox-app/issues';
             ))
           }
         </span>
-        <span class={`badge ${statusCls}`}>{statusRaw}</span>
+        <span class={`badge ${statusCls}`}>{statusLabel[statusRaw] ?? statusRaw}</span>
         {detail.version && <span class="badge badge-info">v{detail.version}</span>}
         {!detail.live && <span class="badge">{c.requirements.placeholder}</span>}
       </div>
