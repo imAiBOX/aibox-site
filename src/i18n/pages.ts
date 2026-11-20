@@ -90,7 +90,7 @@ const en = {
       },
       {
         q: 'Does it work on macOS?',
-        a: 'Not yet. Windows works today; the macOS build is next. The download page will show it the moment it lands.',
+        a: 'Yes. There is a macOS build too — macOS 12 or newer, works on both Intel and Apple Silicon, and it is the same portable file: download it, drag it into Applications, done.',
         link: { href: '/download/', label: 'Go to the download page' },
       },
       {
@@ -423,7 +423,7 @@ const en = {
         },
         {
           q: 'Does it work on macOS?',
-          a: 'OpenClaw itself runs on Windows and macOS. The AiBOX installer is Windows-first — the macOS build is next and the download page shows it the moment it lands.',
+          a: 'OpenClaw itself runs on Windows and macOS, and so does AiBOX. Pick your platform on the download page — the macOS file needs macOS 12 or newer.',
           link: { href: '/download/', label: 'Go to the download page' },
         },
         {
@@ -636,7 +636,7 @@ const en = {
       steps: [
         {
           t: 'Install AiBOX',
-          d: 'One portable file for Windows (macOS coming). Double-click and it runs — no installer, no administrator rights.',
+          d: 'One portable file for Windows and macOS. Double-click it and it runs — no installer, no administrator rights.',
           cta: 'Go to download',
         },
         {
@@ -809,7 +809,7 @@ const zh: PagesDict = {
       },
       {
         q: '支持 macOS 吗？',
-        a: '还没有。现在能用的是 Windows 版，macOS 版在后面。一上线下载页就会显示。',
+        a: '支持。macOS 版已经能用：macOS 12 以上，Intel 和苹果芯片都能装，同样是绿色免安装——下载后拖进「应用程序」就能用。',
         link: { href: '/download/', label: '去下载页' },
       },
       {
@@ -830,7 +830,7 @@ const zh: PagesDict = {
     blocks: [
       {
         h: '它是什么',
-        p: '一个 Windows 上的小巧绿色程序（macOS 版在做）。你从目录里挑一个应用，AiBOX 先体检你的电脑，再按序把缺的东西装好、帮你填好 key，最后真实验证它能回话。挡路的东西它来清——全程人话，一步一步。',
+        p: '一个 Windows 和 macOS 都能跑的小巧绿色程序。你从目录里挑一个应用，AiBOX 先体检你的电脑，再按序把缺的东西装好、帮你填好 key，最后真实验证它能回话。挡路的东西它来清——全程人话，一步一步。',
       },
       {
         h: '它不是什么',
@@ -1030,7 +1030,7 @@ const zh: PagesDict = {
     install: {
       heading: '安装只要三步',
       steps: [
-        { t: '装上 AiBOX', d: 'Windows 一个便携文件（macOS 在做），双击就跑——没有安装器，也不弹管理员权限。', cta: '去下载页' },
+        { t: '装上 AiBOX', d: 'Windows 和 macOS 各一个便携文件，双击就跑——没有安装器，也不弹管理员权限。', cta: '去下载页' },
         { t: '选 OpenClaw', d: 'AiBOX 先看你电脑上已经有什么，缺什么按顺序自动补什么。', cta: '' },
         { t: '跟着向导点', d: '它会帮你填好 key、写好配置文件，再真实发一条消息验证能用。你只管点。', cta: '' },
       ],
@@ -1133,7 +1133,7 @@ const zh: PagesDict = {
         },
         {
           q: '支持 macOS 吗？',
-          a: 'OpenClaw 本身 Windows / macOS 都能跑。AiBOX 安装器先做 Windows——macOS 版在后面，一上线下载页就会显示。',
+          a: 'OpenClaw 本身 Windows / macOS 都能跑，AiBOX 也是。去下载页选你的系统就行——macOS 版需要 macOS 12 以上。',
           link: { href: '/download/', label: '去下载页' },
         },
         {
@@ -1346,7 +1346,7 @@ const zh: PagesDict = {
       steps: [
         {
           t: '装上 AiBOX',
-          d: 'Windows 一个便携文件（macOS 版在路上）。双击就跑——不用安装、不要管理员权限。',
+          d: 'Windows 和 macOS 各一个便携文件，双击就跑——不用安装、不要管理员权限。',
           cta: '去下载',
         },
         {

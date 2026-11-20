@@ -98,6 +98,42 @@ for (const [name, n] of declared) {
   else if (Number(n) !== regIds.size) docErrors.push(`${name} 声明 ${n} 个应用，registry 实际 ${regIds.size} 个`);
 }
 
+// 4b) llms.txt 标题里的目录数字（`## App catalog (N apps)`）也要一致 ——
+// 2026-11-20 实测踩坑：只改了 "N apps in total"，标题仍写着 21 → 同一文件自相矛盾。
+const llmsHeading = llms.match(/^##\s*App catalog \((\d+) apps\)/im)?.[1];
+if (!llmsHeading) docErrors.push('llms.txt 缺 "## App catalog (N apps)" 标题声明');
+else if (Number(llmsHeading) !== regIds.size)
+  docErrors.push(`llms.txt 标题声明 ${llmsHeading} 个应用，registry 实际 ${regIds.size} 个`);
+
+// 4c) llms-full.txt（构建产物）也必须声明同一个数字 —— 此前完全不被校验。
+// 读取 dist/llms-full.txt（gen-meta 生成）；不存在则跳过（构建顺序问题不误报）。
+try {
+  const full = readFileSync(join(DIST, 'llms-full.txt'), 'utf8');
+  const fullN = full.match(/(\d+) apps in total/i)?.[1];
+  if (!fullN) docErrors.push('llms-full.txt 缺应用总数声明');
+  else if (Number(fullN) !== regIds.size)
+    docErrors.push(`llms-full.txt 声明 ${fullN} 个应用，registry 实际 ${regIds.size} 个`);
+} catch {
+  // 未生成（本地未跑 gen-meta）→ 跳过
+}
+
+// 4d) AI 文档不得把 macOS 描述成「未发布 / planned / coming」——
+// 2026-11-20 实测踩坑：macOS 版早已发布，FAQ 仍写 "macOS build is next"。
+const staleMac = [
+  ['llms.txt', llms],
+  ['agents.md', agents],
+].filter(([, t]) => /macos[^.\n]{0,40}(planned|coming|not yet|is next)|\bplanned\b[^.\n]{0,20}macos/i.test(t));
+if (staleMac.length) {
+  for (const [name] of staleMac) docErrors.push(`${name} 把 macOS 描述成尚未发布（与实际已发布双平台矛盾）`);
+}
+
+// 4e) AI 文档提及的 release 资产必须含 macOS dmg（避免只提 exe 让 agent 以为没有 Mac 版）
+for (const [name, t] of [['llms.txt', llms], ['agents.md', agents]]) {
+  if (/AiBOX-vX\.Y\.Z-windows-x64\.exe/.test(t) && !/macos-universal\.dmg/.test(t)) {
+    docErrors.push(`${name} 只列了 Windows 资产，漏了 macOS dmg`);
+  }
+}
+
 if (docErrors.length) {
   console.error(`[check-routes] AI 文档断言 FAIL — ${docErrors.length} 项:`);
   for (const e of docErrors) console.error('  - ' + e);

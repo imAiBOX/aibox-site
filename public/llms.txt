@@ -8,7 +8,7 @@ AiBOX.im is the official website for the AiBOX desktop app (open source, English
 
 - [Home (English)](https://aibox.im/en/): product overview and 3-step quick start
 - [Home (中文)](https://aibox.im/zh/): 中文首页
-- [Download](https://aibox.im/en/download/): portable Windows build, SHA256, SmartScreen guide
+- [Download](https://aibox.im/en/download/): portable Windows (.exe) and macOS (.dmg, 12+, universal) builds, SHA256, SmartScreen + Gatekeeper guides
 - [App catalog](https://aibox.im/en/apps/): every app AiBOX can install, with difficulty and platform badges
 - [AI coding tools topic](https://aibox.im/en/collections/coding/): seven AI coding tools compared side by side — pick the one that matches where you work
 - [Run models locally topic](https://aibox.im/en/collections/local-models/): run open AI models on your own computer — an engine (Ollama, GPT4All, Llamafile) plus clients that talk to it
@@ -17,7 +17,7 @@ AiBOX.im is the official website for the AiBOX desktop app (open source, English
 - [FAQ](https://aibox.im/en/faq/) · [Network self-check](https://aibox.im/en/guides/network-selfcheck/) · [SmartScreen guide](https://aibox.im/en/guides/smartscreen/)
 - [Privacy](https://aibox.im/en/privacy/) · [About](https://aibox.im/en/about/)
 
-## App catalog (21 apps)
+## App catalog (29 apps)
 
 - Example pages: [OpenClaw](https://aibox.im/en/apps/openclaw/), [Ollama](https://aibox.im/en/apps/ollama/), [Cherry Studio](https://aibox.im/en/apps/cherry-studio/), [Chatbox](https://aibox.im/en/apps/chatbox/), [Jan](https://aibox.im/en/apps/jan/), [Cline](https://aibox.im/en/apps/cline/), [ComfyUI](https://aibox.im/en/apps/comfyui/), [SillyTavern](https://aibox.im/en/apps/sillytavern/), [Pi](https://aibox.im/en/apps/pi/), [OpenCode](https://aibox.im/en/apps/opencode/), [Goose](https://aibox.im/en/apps/goose/)
 - 29 apps in total — full list with difficulty, platforms and status: [GET /meta/index.json](https://aibox.im/meta/index.json). Every app also has an install-guide page at `https://aibox.im/en/apps/{id}/` (and `/zh/`).
@@ -31,7 +31,7 @@ AiBOX.im is the official website for the AiBOX desktop app (open source, English
 
 ## Downloads
 
-- Latest desktop release: https://github.com/imAiBOX/aibox-app/releases/latest (`AiBOX-vX.Y.Z-windows-x64.exe`, portable, no installer)
+- Latest desktop release: https://github.com/imAiBOX/aibox-app/releases/latest (`AiBOX-vX.Y.Z-windows-x64.exe` and `AiBOX-vX.Y.Z-macos-universal.dmg` — both portable, no installer)
 - Source code: [aibox-app](https://github.com/imAiBOX/aibox-app) · [aibox-site](https://github.com/imAiBOX/aibox-site) · [aibox-registry](https://github.com/imAiBOX/aibox-registry)
 
 ## Notes

@@ -205,6 +205,9 @@ try {
     '',
     `> Full build-time catalog snapshot: ${ids.length} applications. Source: GitHub registry.`,
     '',
+    // 与 llms.txt 保持同一措辞（check-routes 断言两处数字一致，防漂移）
+    `- ${ids.length} apps in total — full list with difficulty, platforms and status: [GET /meta/index.json](https://aibox.im/meta/index.json).`,
+    '',
     '## Apps',
     '',
   ];

@@ -11,9 +11,9 @@ API-key configuration, and verifies with a real test message. No terminal, no ad
 
 ## Canonical facts
 
-- Product: AiBOX desktop app, portable single-file exe (Windows), macOS planned
+- Product: AiBOX desktop app, portable single-file build for Windows (x64 .exe) and macOS (12+, universal .dmg) — both released
 - License: open source; repositories at https://github.com/imAiBOX (aibox-app, aibox-site, aibox-registry)
-- Latest release: https://github.com/imAiBOX/aibox-app/releases/latest (asset `AiBOX-vX.Y.Z-windows-x64.exe`)
+- Latest release: https://github.com/imAiBOX/aibox-app/releases/latest (assets `AiBOX-vX.Y.Z-windows-x64.exe` and `AiBOX-vX.Y.Z-macos-universal.dmg`)
 - Checksums: published on the download page and derived from GitHub Release asset digests
 - Languages: English default; Chinese at /zh/ and in-app
 - Catalog size: 29 apps (example ids: openclaw, ollama, cherry-studio, chatbox, jan, cline, comfyui, sillytavern, pi, opencode, goose, 5ire, dyad, zed) — full list in `GET /meta/index.json`
