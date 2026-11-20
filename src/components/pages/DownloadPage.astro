@@ -21,22 +21,30 @@ const description =
     ? '下载 AiBOX 的 Windows 或 macOS 版：免安装、不要管理员权限。附当前版本号与 SHA-256 校验值，以及 SmartScreen / Gatekeeper 图文引导。'
     : 'Download the AiBOX portable build for Windows or macOS — no installer, no admin rights. Version, SHA-256 checksum and the SmartScreen / Gatekeeper guides included.';
 const RELEASE_URL = 'https://github.com/imAiBOX/aibox-app/releases/latest';
+
+// 平台按钮直达对应安装包（构建时快照里有真实 tag + 资产直链）。
+// 旧行为两个按钮都跳 releases/latest 泛页 —— 小白点「Download for macOS」
+// 后还要自己在资产列表里找 .dmg，容易拿错文件。
+const winAsset = snapshot?.assets.find((a) => /\.exe$/i.test(a.name));
+const macAsset = snapshot?.assets.find((a) => /\.dmg$/i.test(a.name));
+const winHref = winAsset?.url ?? RELEASE_URL;
+const macHref = macAsset?.url ?? RELEASE_URL;
 ---
 
 <BaseLayout lang={lang} title={title} description={description}>
   <PageHeader title={c.title} lede={c.lede} />
 
   <section class="mx-auto max-w-6xl px-5 py-10" id="download">
-    <!-- 双平台大按钮（禁三等宽卡片阵列：两列不等宽，macOS 为禁用态） -->
+    <!-- 双平台大按钮（两列不等宽）——各自直达对应安装包，资产缺失时回落 release 页 -->
     <div class="grid max-w-3xl gap-4 md:grid-cols-[1.3fr_1fr]">
-      <a class="btn-platform" href={RELEASE_URL} rel="noopener noreferrer">
+      <a class="btn-platform" href={winHref} rel="noopener noreferrer">
         <span class="plat-name">{c.win.label} ↓</span>
         <span class="plat-note">{c.win.note}</span>
         <span class="mt-2 inline-flex items-center gap-2 border-t border-black/20 pt-2 text-sm font-semibold">
           {c.win.cta}
         </span>
       </a>
-      <a class="btn-platform" href={RELEASE_URL} rel="noopener noreferrer">
+      <a class="btn-platform" href={macHref} rel="noopener noreferrer">
         <span class="plat-name">{c.mac.label} ↓</span>
         <span class="plat-note">{c.mac.note}</span>
         <span class="mt-2 inline-flex items-center gap-2 border-t border-black/20 pt-2 text-sm font-semibold">
@@ -45,7 +53,7 @@ const RELEASE_URL = 'https://github.com/imAiBOX/aibox-app/releases/latest';
       </a>
     </div>
 
-    <!-- macOS 打不开引导（放在栅格外侧：disabled 块内不放可聚焦链接，保持无障碍语义干净） -->
+    <!-- macOS 打不开引导（放在栅格外侧，不放可聚焦链接在按钮块内，保持无障碍语义干净） -->
     <p class="mt-3 max-w-3xl text-sm text-aibox-text2">
       <a class="text-aibox-info hover:text-aibox-green" href={`/${lang}/guides/gatekeeper/`}>{c.mac.help} →</a>
     </p>

@@ -18,15 +18,21 @@ export function landingHref(lang: string, id: string): string {
   return `/${lang}/apps/${id}/`;
 }
 
-// 内置占位（与并行 registry 任务的 openclaw/hermes-agent 对齐，字段仅作展示）
+// 内置占位（仅在 registry 完全不可达时使用）。
+// ⚠️ 内容必须与事实一致：旧版写的是 hermes-agent「仅 Windows + planned」，
+// 与真实情况（双平台 + stable）矛盾，registry 故障时反而给用户假信息。
+// 这里只保留真实、稳定的条目，且平台与状态都按实际写。
 const FALLBACK_APPS: RegistryApp[] = [
-  { id: 'openclaw', name: 'OpenClaw', summary: 'Open-source AI agent', difficulty: 2, platforms: ['win', 'mac'], status: 'preview' },
-  { id: 'hermes-agent', name: 'Hermes agent', summary: 'Desktop AI assistant', difficulty: 3, platforms: ['win'], status: 'planned' },
+  { id: 'openclaw', name: 'OpenClaw', difficulty: 3, platforms: ['win', 'mac'], status: 'stable' },
+  { id: 'hermes-agent', name: 'Hermes Agent', difficulty: 3, platforms: ['win', 'mac'], status: 'stable' },
+  { id: 'cherry-studio', name: 'Cherry Studio', difficulty: 1, platforms: ['win', 'mac'], status: 'stable' },
 ];
 
 const SOURCES = [
   'https://raw.githubusercontent.com/imAiBOX/aibox-registry/main/index.json',
   'https://cdn.jsdelivr.net/gh/imAiBOX/aibox-registry@main/index.json',
+  // 线上镜像（本站上次部署产物）—— raw/jsdelivr 同时不可达时的兜底
+  'https://aibox.im/meta/index.json',
 ];
 
 function str(v: unknown): string | undefined {

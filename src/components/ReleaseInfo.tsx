@@ -137,7 +137,9 @@ export default function ReleaseInfo({
     };
   }, [snapshot]);
 
-  const winAsset = release?.assets.find((a) => /\.exe$/i.test(a.name)) ?? release?.assets[0];
+  // Windows 资产：只认 .exe。**不要用 `?? assets[0]` 兜底** ——
+  // 资产顺序一变就可能把 macOS 的 .dmg 当成 Windows 文件展示（小白会下错）。
+  const winAsset = release?.assets.find((a) => /\.exe$/i.test(a.name));
   const macAsset = release?.assets.find((a) => /\.dmg$/i.test(a.name));
   const sourceLabel = source === 'live' ? labels.live : source === 'cached' ? labels.cached : labels.snapshot;
 

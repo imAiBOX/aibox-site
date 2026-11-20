@@ -19,13 +19,13 @@ const summary = taglineFor(app, lang) ?? app.summary;
 
 const platformName: Record<string, string> = { win: 'Windows', windows: 'Windows', mac: 'macOS', macos: 'macOS', darwin: 'macOS', linux: 'Linux' };
 const statusMap: Record<string, { label: string; cls: string }> = {
-  available: { label: 'available', cls: 'badge-ok' },
-  ready: { label: 'ready', cls: 'badge-ok' },
-  installable: { label: 'installable', cls: 'badge-ok' },
-  stable: { label: 'stable', cls: 'badge-ok' },
-  preview: { label: 'preview', cls: 'badge-info' },
-  building: { label: 'building', cls: 'badge-info' },
-  planned: { label: 'planned', cls: '' },
+  available: { label: d.catalog.statusAvailable, cls: 'badge-ok' },
+  ready: { label: d.catalog.statusReady, cls: 'badge-ok' },
+  installable: { label: d.catalog.statusInstallable, cls: 'badge-ok' },
+  stable: { label: d.catalog.statusStable, cls: 'badge-ok' },
+  preview: { label: d.catalog.statusPreview, cls: 'badge-info' },
+  building: { label: d.catalog.statusBuilding, cls: 'badge-info' },
+  planned: { label: d.catalog.statusPlanned, cls: '' },
 };
 const status = app.status ? statusMap[app.status.toLowerCase()] ?? { label: app.status, cls: '' } : { label: '—', cls: '' };
 const level = app.difficulty ?? 0;

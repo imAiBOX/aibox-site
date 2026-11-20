@@ -50,9 +50,17 @@ const en = {
     status: 'Status',
     empty: 'No apps published yet — the registry is still being filled in.',
     difficultyLevel: (n: number) => `${n} / 5`,
+    // 状态徽章（原文直出英文对小白不友好 —— 中文页也显示 "stable"）
+    statusStable: 'stable',
+    statusPreview: 'preview',
+    statusBuilding: 'building',
+    statusPlanned: 'planned',
+    statusAvailable: 'available',
+    statusReady: 'ready',
+    statusInstallable: 'installable',
   },
   footer: {
-    phase: 'Static site, no backend, no cookies.',
+    note: 'Static site, no backend, no cookies.',
     copy: '© 2026 AiBOX.im · data from GitHub, served as static HTML.',
     // 独立声明：页脚必须标注
     independent:
@@ -107,9 +115,17 @@ const zh: Dict = {
     status: '状态',
     empty: '暂无已发布应用——registry 还在填充中。',
     difficultyLevel: (n: number) => `${n} / 5`,
+    // 状态徽章（与英文页保持同一语义，但用中文说人话）
+    statusStable: '稳定',
+    statusPreview: '预览中',
+    statusBuilding: '开发中',
+    statusPlanned: '计划中',
+    statusAvailable: '可安装',
+    statusReady: '就绪',
+    statusInstallable: '可安装',
   },
   footer: {
-    phase: '纯静态站，无后端、无 Cookie。',
+    note: '纯静态站，无后端、无 Cookie。',
     copy: '© 2026 AiBOX.im · 数据来自 GitHub，纯静态 HTML 输出。',
     // 独立声明：页脚必须标注
     independent: 'Aibox 是独立社区项目，与所列应用官方无隶属关系。',

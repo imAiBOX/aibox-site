@@ -9,6 +9,7 @@ import { fetchAppDetail, fetchRegistry, taglineFor } from '../../data/registry';
 import { fetchAppGuides } from '../../data/guides';
 import { renderMd } from '../../lib/renderMd';
 import { pt, type Lang } from '../../i18n/pages';
+import { t } from '../../i18n/dict';
 
 interface Props {
   lang: Lang;
@@ -16,6 +17,7 @@ interface Props {
 }
 const { lang, id } = Astro.props;
 const c = pt(lang).landing;
+const d = t(lang);
 
 const [registry, detail, guides] = await Promise.all([fetchRegistry(), fetchAppDetail(id), fetchAppGuides(id)]);
 const app = registry.apps.find((a) => a.id === id) ?? { id, name: detail.name };
@@ -27,6 +29,16 @@ const platforms = (app.platforms ?? []).map((p) => platformName[p.toLowerCase()]
 const level = app.difficulty ?? 0;
 const statusRaw = (app.status ?? 'preview').toLowerCase();
 const statusCls = ['stable', 'available', 'ready', 'installable'].includes(statusRaw) ? 'badge-ok' : ['preview', 'building', 'experimental'].includes(statusRaw) ? 'badge-info' : '';
+// 状态徽章本地化（原文直出英文在中文页也显示 "stable"，小白看不懂）
+const statusLabel: Record<string, string> = {
+  stable: d.catalog.statusStable,
+  available: d.catalog.statusAvailable,
+  ready: d.catalog.statusReady,
+  installable: d.catalog.statusInstallable,
+  preview: d.catalog.statusPreview,
+  building: d.catalog.statusBuilding,
+  planned: d.catalog.statusPlanned,
+};
 
 const tagline = taglineFor(app, lang) ?? (lang === 'zh' ? detail.description?.['zh-CN'] : detail.description?.en) ?? app.summary ?? '';
 
@@ -144,7 +156,7 @@ const feedbackUrl = 'https://github.com/imAiBOX/aibox-app/issues';
             ))
           }
         </span>
-        <span class={`badge ${statusCls}`}>{statusRaw}</span>
+        <span class={`badge ${statusCls}`}>{statusLabel[statusRaw] ?? statusRaw}</span>
         {detail.version && <span class="badge badge-info">v{detail.version}</span>}
         {!detail.live && <span class="badge">{c.requirements.placeholder}</span>}
       </div>
