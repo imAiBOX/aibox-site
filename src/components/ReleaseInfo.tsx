@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { ReleaseSnapshot } from '../data/release';
+import { chooseRelease } from '../data/release-choice.mjs';
 
 // 下载页版本/SHA256 展示区（React 岛，client:load）
 // 零依赖原则：客户端 fetch GitHub API releases/latest（匿名 60/h/IP），
@@ -18,7 +19,7 @@ const fetchRelease = async (): Promise<Response> => {
   } catch { /* 代理不可达 → 直连兜底 */ }
   return fetch(API_DIRECT, { headers: { accept: 'application/vnd.github+json' } });
 };
-const CACHE_KEY = 'aibox.release.v1';
+const CACHE_KEY = 'aibox.release.v2';
 const TTL_MS = 5 * 60 * 1000;
 
 type Labels = {
@@ -88,9 +89,10 @@ export default function ReleaseInfo({
 
     const cached = readCache();
     if (cached && Date.now() - cached.at < TTL_MS) {
-      setRelease(cached.data);
-      setSource('cached');
-      return;
+      const chosen = chooseRelease(snapshot, cached.data);
+      setRelease(chosen);
+      setSource(chosen === cached.data ? 'cached' : 'snapshot');
+      // A cached release must never prevent refreshing the metadata.
     }
 
     fetchRelease()
@@ -123,9 +125,10 @@ export default function ReleaseInfo({
           assets,
         };
         if (cancelled) return;
-        setRelease(data);
-        setSource('live');
-        writeCache(data);
+        const chosen = chooseRelease(snapshot, data);
+        setRelease(chosen);
+        setSource(chosen === data ? 'live' : 'snapshot');
+        writeCache(chosen);
       })
       .catch(() => {
         // fetch 失败：保留构建时快照（state 初始值），或显示 unavailable
