@@ -74,6 +74,17 @@ const faqLd = {
 const node = detail.runtime?.node;
 const configPath = detail.configTarget ?? '~/.config/openclaw/openclaw.json5';
 const keyUrl = (id: string) => detail.providers?.find((p) => p.id === id)?.getKeyUrl;
+/**
+ * 「一个 key 通吃」：openclaw 支持的某个 key 服务商，还被多少个应用共用？
+ * 数据源：registry index 每个条目的 `keyProviders`（与通用落地页、桌面端同一份口径）。
+ */
+const keyCoverage = (detail.providers ?? [])
+  .filter((p) => p.authType === 'api-key')
+  .map((p) => ({
+    id: p.id,
+    count: registry.apps.filter((a) => a.id !== 'openclaw' && (a.keyProviders ?? []).includes(p.id)).length,
+  }))
+  .sort((a, b) => b.count - a.count);
 const feedbackUrl = 'https://github.com/imAiBOX/aibox-app/issues';
 ---
 
@@ -256,6 +267,11 @@ const feedbackUrl = 'https://github.com/imAiBOX/aibox-app/issues';
             </ol>
             {p.rebate && <p class="m-0 text-xs text-aibox-text2">{p.rebate}</p>}
             {p.note && <p class="m-0 border-l-2 border-aibox-info pl-2 text-xs text-aibox-text2">{p.note}</p>}
+            {keyCoverage.find((k) => k.id === p.id)?.count ? (
+              <p class="m-0 text-xs leading-relaxed text-aibox-green">
+                {c.config.sharedWith.replace('{count}', String(keyCoverage.find((k) => k.id === p.id)!.count))}
+              </p>
+            ) : null}
             {keyUrl(p.id) && (
               <a
                 class="mt-auto inline-flex items-center gap-1 font-mono text-xs text-aibox-info no-underline hover:text-aibox-green"

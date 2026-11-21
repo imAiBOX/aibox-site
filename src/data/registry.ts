@@ -11,6 +11,10 @@ export type RegistryApp = {
   category?: string;
   /** index.json 的本地化 tagline：{ 'zh-CN': ..., en: ... } */
   tagline?: Record<string, string>;
+  /** 该应用支持的模型服务商 id（registry index 提供） */
+  providers?: string[];
+  /** 该应用支持且**需要 API key** 的服务商 id → 「一个 key 通吃」 */
+  keyProviders?: string[];
 };
 
 /** 应用落地页链接：所有 index 内应用都有模板化落地页（openclaw 为手写页，同路由） */
@@ -83,6 +87,8 @@ function normalizeApp(raw: unknown, fallbackId?: string): RegistryApp | null {
     status,
     category,
     tagline,
+    providers: strArr(o.providers),
+    keyProviders: strArr(o.keyProviders),
   };
 }
 

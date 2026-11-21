@@ -67,6 +67,14 @@ const faqItems = c.faq.items.map((item) => ({ q: fill(item.q), a: fill(item.a), 
 
 // —— 模型配置（detail.providers 数据驱动；空则整节隐藏）——
 const providers = detail.providers ?? [];
+/**
+ * 「一个 key 通吃」：这个应用的某个 key 服务商，还被哪些应用支持？
+ * 数据源：registry index 的每个条目的 `keyProviders`（同一份口径，软件端也用）。
+ */
+const sharedAppsFor = (pid: string) =>
+  registry.apps.filter(
+    (a) => a.id !== app.id && (a.keyProviders ?? []).includes(pid),
+  );
 const providerName = (pid: string): string => (c.providers.names as Record<string, string>)[pid] ?? pid;
 const providerAuth = (p: { authType?: string }): string =>
   p.authType === 'local' ? c.providers.local : p.authType === 'oauth' ? c.providers.oauth : c.providers.apiKey;
@@ -337,6 +345,11 @@ const feedbackUrl = 'https://github.com/imAiBOX/aibox-app/issues';
               {p.configTarget && (
                 <p class="mono-block m-0 break-all border border-aibox-line bg-aibox-bg p-2 font-mono text-xs text-aibox-info" style="border-radius:4px">
                   {p.configTarget}
+                </p>
+              )}
+              {p.authType === 'api-key' && sharedAppsFor(p.id).length > 0 && (
+                <p class="m-0 text-xs leading-relaxed text-aibox-green">
+                  {c.providers.sharedWith.replace('{count}', String(sharedAppsFor(p.id).length))}
                 </p>
               )}
               {p.getKeyUrl && p.authType !== 'local' && (

@@ -358,6 +358,7 @@ const en = {
       writeH: 'Where the key is written',
       writeNote: 'OpenClaw’s own config file, in your own user folder. AiBOX backs it up before writing and keeps your other settings.',
       getKeyH: 'How to get a key',
+      sharedWith: 'The same key works for {count} other apps here.',
       paths: [
         {
           id: 'openrouter',
@@ -685,6 +686,7 @@ const en = {
       oauth: 'Sign in with your account instead — no key to copy.',
       apiKey: 'You need an API key from the provider.',
       getKey: 'Get a key',
+      sharedWith: 'The same key works for {count} other apps here.',
       writtenTo: 'Written to',
       names: {
         openrouter: 'OpenRouter',
@@ -1086,6 +1088,7 @@ const zh: PagesDict = {
       writeH: '写到哪',
       writeNote: 'OpenClaw 自己的配置文件，在你自己的用户文件夹里。AiBOX 写入前会先备份，你已有的设置会保留。',
       getKeyH: '去哪弄 key',
+      sharedWith: '同一个 key 在这里还能用于另外 {count} 个应用。',
       paths: [
         {
           id: 'openrouter',
@@ -1413,6 +1416,7 @@ const zh: PagesDict = {
       oauth: '用账号登录即可，不用复制 key。',
       apiKey: '需要服务商的 API key。',
       getKey: '去拿 key',
+      sharedWith: '同一个 key 在这里还能用于另外 {count} 个应用。',
       writtenTo: '写入到',
       names: {
         openrouter: 'OpenRouter',
