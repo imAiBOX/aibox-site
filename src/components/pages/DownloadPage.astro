@@ -35,6 +35,11 @@ const macHref = macAsset?.url ?? RELEASE_URL;
   <PageHeader title={c.title} lede={c.lede} />
 
   <section class="mx-auto max-w-6xl px-5 py-10" id="download">
+    <p role="note" class="mb-5 max-w-3xl rounded border border-aibox-line px-4 py-3 text-sm text-aibox-cream">
+      {lang === 'zh'
+        ? '如果你正在使用 AiBOX v0.1.20 或更早版本，请先更新。更新前，请通过 OpenClaw、Cline、Continue、Pi 或 Nanobot 的官方说明卸载，避免在 AiBOX 中卸载或重装这些应用。'
+        : 'If you use AiBOX v0.1.20 or earlier, update first. Until then, follow the official uninstall instructions for OpenClaw, Cline, Continue, Pi, or Nanobot. Avoid uninstalling or reinstalling these apps from within AiBOX.'}
+    </p>
     <!-- 双平台大按钮（两列不等宽）——各自直达对应安装包，资产缺失时回落 release 页 -->
     <div class="grid max-w-3xl gap-4 md:grid-cols-[1.3fr_1fr]">
       <a class="btn-platform" href={winHref} rel="noopener noreferrer">
