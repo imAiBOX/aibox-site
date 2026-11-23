@@ -45,11 +45,9 @@ export function parseTrackRequest(body: unknown): { appId: string; type: 'view' 
 /** GitHub proxy allowlist (path prefixes we forward to api.github.com). */
 export const GITHUB_ALLOW_PREFIX: string[] = ['repos/imAiBOX/'];
 
-export function isAllowedGithubPath(path: string): boolean {
-  const clean = path.replace(/^\/+/, '');
-  if (!clean || clean.includes('..')) return false;
-  return GITHUB_ALLOW_PREFIX.some((p) => clean.startsWith(p));
-}
+// 允许列表的**单一真源**在 `_lib/github-proxy.ts`（GitHub 边缘代理专用）；
+// 这里保留导出只为兼容既有引用（`stats.test.mjs` 与旧调用点）。
+export { isAllowedGithubPath } from './github-proxy.ts';
 
 /** Anonymous device id: 8-64 chars of hex/uuid fragments. Random local UUID only. */
 export function isValidAid(aid: unknown): aid is string {
