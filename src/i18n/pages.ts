@@ -137,7 +137,7 @@ const en = {
     blocks: [
       {
         h: 'This website',
-        p: 'Pages are served by Cloudflare. We do not set tracking cookies or persistent visitor identifiers. App view/install counters and download redirect counters are disabled; the old stats endpoint returns no counters and accepts legacy event requests as no-ops. Cloudflare may process standard request logs for operations and security. The download page also requests public release metadata from GitHub.',
+        p: 'Pages are served by Cloudflare. We do not set tracking cookies or persistent visitor identifiers. App view/install counters and download redirect counters are disabled; the old stats endpoint returns no counters and accepts legacy event requests as no-ops. Cloudflare may process standard request logs for operations and security. Download links open GitHub, which handles those requests under its own privacy policy.',
       },
       {
         h: 'Your API key',
@@ -877,7 +877,7 @@ const zh: PagesDict = {
     blocks: [
       {
         h: '这个网站',
-        p: '页面由 Cloudflare 托管。我们不设置追踪 Cookie 或持久访客标识。应用浏览/安装计数和下载跳转计数均已关闭；旧统计接口不返回历史计数，收到旧版上报也只作空操作。Cloudflare 可能为运维和安全处理标准请求日志。下载页也会向 GitHub 请求公开版本信息。',
+        p: '页面由 Cloudflare 托管。我们不设置追踪 Cookie 或持久访客标识。应用浏览/安装计数和下载跳转计数均已关闭；旧统计接口不返回历史计数，收到旧版上报也只作空操作。Cloudflare 可能为运维和安全处理标准请求日志。使用下载链接时，GitHub 会按其自身的隐私政策处理下载请求。',
       },
       {
         h: '你的 API key',
