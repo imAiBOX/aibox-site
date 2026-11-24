@@ -78,7 +78,7 @@ jobs:
         run: node scripts/seo-audit.mjs
 
       - name: MCP endpoint unit tests (node --test)
-        run: node --test functions/mcp.test.mjs functions/_lib/stats.test.mjs functions/_lib/github-proxy.test.mjs workers/dl/src/index.test.mjs src/data/release-choice.test.mjs
+        run: node --test functions/mcp.test.mjs functions/_lib/stats.test.mjs functions/_lib/github-proxy.test.mjs functions/_lib/github-proxy-handler.test.mjs scripts/usage-check.test.mjs workers/dl/src/index.test.mjs src/data/release-choice.test.mjs
 
       - name: Lighthouse (desktop, assertions in lighthouserc.json)
         run: pnpm exec lhci autorun

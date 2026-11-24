@@ -13,13 +13,7 @@
 //
 // Endpoint fallback chain (probed in order, first success wins):
 //   1. graphql-account  - Cloudflare GraphQL Analytics, account datasets
-//                         (workersInvocationsAdaptive, pagesFunctionsInvocationsAdaptiveGroups,
-//                          kvOperationsAdaptiveGroups, r2OperationsAdaptiveGroups)
-//   2. graphql-core     - same, without the R2 dataset (in case R2 dataset is unavailable)
-//   3. graphql-zone     - zone-level workersZoneInvocationsAdaptiveGroups (workers only)
-//   4. rest-*           - REST probes (account insights, zone analytics); with account-owned
-//                         tokens these are expected to fail and the script exits 2 rather
-//                         than reporting wrong numbers.
+//   2. graphql-zone     - zone-level workersZoneInvocationsAdaptiveGroups (workers only)
 
 import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
@@ -32,55 +26,33 @@ export const METRICS = Object.freeze([
   { key: 'workers-requests', label: 'Workers requests/day', limit: 100_000, threshold: 70_000 },
   { key: 'kv-reads', label: 'KV reads/day', limit: 100_000, threshold: 70_000 },
   { key: 'kv-writes', label: 'KV writes/day', limit: 1_000, threshold: 700 },
-  { key: 'r2-class-a', label: 'R2 Class A ops/day', limit: 1_000_000, threshold: 700_000 },
 ]);
-
-const CLASS_A = new Set([
-  'listbuckets', 'putbucket', 'listobjects', 'putobject', 'copyobject',
-  'completemultipartupload', 'createmultipartupload',
-  'lifecyclestoragetiertransition', 'listmultipartuploads', 'uploadpart',
-  'uploadpartcopy', 'listparts', 'putbucketencryption', 'putbucketcors',
-  'putbucketlifecycleconfiguration',
-]);
-const CLASS_B = new Set([
-  'headbucket', 'headobject', 'getobject', 'usagesummary', 'getbucketencryption',
-  'getbucketlocation', 'getbucketcors', 'getbucketlifecycleconfiguration',
-]);
-const CLASS_FREE = new Set(['deleteobject', 'deletebucket', 'abortmultipartupload']);
-
-/** Classify an R2 actionType into 'a' | 'b' | 'free'. Unknown types count as Class A (conservative). */
-export function classifyR2Action(actionType) {
-  const norm = String(actionType ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  if (CLASS_B.has(norm)) return 'b';
-  if (CLASS_FREE.has(norm)) return 'free';
-  return 'a';
-}
 
 /** Aggregate kvOperations groups: actionType 'read' -> reads, anything else -> writes (conservative). */
 export function kvCounts(groups) {
+  if (!Array.isArray(groups) || groups.length === 0) return { reads: null, writes: null };
   let reads = 0;
   let writes = 0;
-  for (const g of groups ?? []) {
-    const n = Number(g?.sum?.requests ?? 0);
-    if (String(g?.dimensions?.actionType ?? '').toLowerCase() === 'read') reads += n;
+  for (const g of groups) {
+    const n = g?.sum?.requests;
+    const action = String(g?.dimensions?.actionType ?? '').toLowerCase();
+    if (!Number.isFinite(n) || n < 0 || !['read', 'write', 'delete', 'list'].includes(action)) {
+      return { reads: null, writes: null };
+    }
+    if (action === 'read') reads += n;
     else writes += n;
   }
   return { reads, writes };
 }
 
-/** Sum R2 groups into Class A op count. */
-export function r2ClassACount(groups) {
-  let total = 0;
-  for (const g of groups ?? []) {
-    if (classifyR2Action(g?.dimensions?.actionType) !== 'a') continue;
-    total += Number(g?.sum?.requests ?? 0);
-  }
-  return total;
-}
-
 function sumRequests(groups) {
+  if (!Array.isArray(groups) || groups.length === 0) return null;
   let total = 0;
-  for (const g of groups ?? []) total += Number(g?.sum?.requests ?? 0);
+  for (const g of groups) {
+    const n = g?.sum?.requests;
+    if (!Number.isFinite(n) || n < 0) return null;
+    total += n;
+  }
   return total;
 }
 
@@ -99,6 +71,17 @@ export function evaluateUsage(usage, metrics = METRICS) {
 }
 
 /** Deterministic issue title (also the dedup key via metric key substring match). */
+export function usageWindows(now = new Date()) {
+  const end = new Date(now);
+  const today = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()));
+  const yesterday = new Date(today);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  return {
+    yesterday: { since: yesterday, end: today },
+    today: { since: today, end },
+  };
+}
+
 export function buildIssueTitle(alerts, now = new Date()) {
   const date = now.toISOString().slice(0, 10);
   const parts = alerts.map((a) => `${a.key} ${a.value.toLocaleString('en-US')}/${a.limit.toLocaleString('en-US')} (${a.percent}%)`);
@@ -127,14 +110,14 @@ export function buildIssueBody(usage, alerts, source, since, now = new Date()) {
     return `| ${m.key} | ${used} | ${m.threshold.toLocaleString('en-US')} | ${m.limit.toLocaleString('en-US')} | ${hit} |`;
   });
   return [
-    'Automated daily check of Cloudflare free-tier usage (UTC day).',
+    'Automated daily check of Cloudflare free-tier usage for the bounded previous UTC day.',
     '',
     '| Metric | Used | Alert threshold | Free limit | Status |',
     '|---|---:|---:|---:|---|',
     ...rows,
     '',
     `Source endpoint: ${source} (Cloudflare Analytics).`,
-    `Window: ${since.toISOString()} -> ${now.toISOString()}.`,
+    `Window: ${since.toISOString()} -> ${now.toISOString()} (end exclusive).`,
     '',
     'Review plan options in the Cloudflare dashboard before the limits are hit.',
   ].join('\n');
@@ -154,39 +137,13 @@ async function gqlRequest(token, query, variables) {
   return json.data;
 }
 
-const QUERY_ALL = `
-query ($acct: string!, $since: Time!) {
+const QUERY_ACCOUNT = `
+query ($acct: string!, $since: Time!, $until: Time!) {
   viewer {
     accounts(filter: { accountTag: $acct }) {
-      workers: workersInvocationsAdaptive(filter: { datetime_geq: $since }, limit: 1000) {
-        sum { requests }
-      }
-      pages: pagesFunctionsInvocationsAdaptiveGroups(filter: { datetime_geq: $since }, limit: 1000) {
-        sum { requests }
-      }
-      kv: kvOperationsAdaptiveGroups(filter: { datetime_geq: $since }, limit: 1000) {
-        dimensions { actionType }
-        sum { requests }
-      }
-      r2: r2OperationsAdaptiveGroups(filter: { datetime_geq: $since }, limit: 1000) {
-        dimensions { actionType }
-        sum { requests }
-      }
-    }
-  }
-}`;
-
-const QUERY_CORE = `
-query ($acct: string!, $since: Time!) {
-  viewer {
-    accounts(filter: { accountTag: $acct }) {
-      workers: workersInvocationsAdaptive(filter: { datetime_geq: $since }, limit: 1000) {
-        sum { requests }
-      }
-      pages: pagesFunctionsInvocationsAdaptiveGroups(filter: { datetime_geq: $since }, limit: 1000) {
-        sum { requests }
-      }
-      kv: kvOperationsAdaptiveGroups(filter: { datetime_geq: $since }, limit: 1000) {
+      workers: workersInvocationsAdaptive(filter: { datetime_geq: $since, datetime_lt: $until }, limit: 1000) { sum { requests } }
+      pages: pagesFunctionsInvocationsAdaptiveGroups(filter: { datetime_geq: $since, datetime_lt: $until }, limit: 1000) { sum { requests } }
+      kv: kvOperationsAdaptiveGroups(filter: { datetime_geq: $since, datetime_lt: $until }, limit: 1000) {
         dimensions { actionType }
         sum { requests }
       }
@@ -195,56 +152,50 @@ query ($acct: string!, $since: Time!) {
 }`;
 
 const QUERY_ZONE = `
-query ($since: Time!) {
-  viewer {
-    zones {
-      zoneTag
-      workersZoneInvocationsAdaptiveGroups(filter: { datetime_geq: $since }, limit: 1000) {
-        sum { requests }
-      }
-    }
-  }
+query ($since: Time!, $until: Time!) {
+  viewer { zones { workersZoneInvocationsAdaptiveGroups(filter: { datetime_geq: $since, datetime_lt: $until }, limit: 1000) { sum { requests } } } }
 }`;
 
-function usageFromAccount(data, withR2) {
+function sumComplete(...values) {
+  return values.every(Number.isFinite) ? values.reduce((sum, value) => sum + value, 0) : null;
+}
+
+function usageFromAccount(data) {
   const acct = data?.viewer?.accounts?.[0];
   if (!acct) throw new Error('graphql: no account in response');
   const { reads, writes } = kvCounts(acct.kv);
-  const usage = {
-    'workers-requests': sumRequests(acct.workers) + sumRequests(acct.pages),
+  return {
+    'workers-requests': sumComplete(sumRequests(acct.workers), sumRequests(acct.pages)),
     'kv-reads': reads,
     'kv-writes': writes,
-    'r2-class-a': null,
   };
-  if (withR2) usage['r2-class-a'] = acct.r2?.length ? r2ClassACount(acct.r2) : null;
-  return usage;
 }
 
-async function fetchGraphQLAccount({ token, accountId, since, attempts }) {
+async function fetchGraphQLAccount({ token, accountId, window, attempts }) {
   try {
-    const data = await gqlRequest(token, QUERY_ALL, { acct: accountId, since });
-    return { usage: usageFromAccount(data, true), source: 'graphql-account' };
+    const data = await gqlRequest(token, QUERY_ACCOUNT, {
+      acct: accountId,
+      since: window.since.toISOString(),
+      until: window.end.toISOString(),
+    });
+    return { usage: usageFromAccount(data), source: 'graphql-account' };
   } catch (e) {
     attempts.push(`graphql-account: ${e.message}`);
+    return null;
   }
-  try {
-    const data = await gqlRequest(token, QUERY_CORE, { acct: accountId, since });
-    return { usage: usageFromAccount(data, false), source: 'graphql-core (no R2 dataset)' };
-  } catch (e) {
-    attempts.push(`graphql-core: ${e.message}`);
-  }
-  return null;
 }
 
-async function fetchGraphQLZone({ token, since, attempts }) {
+async function fetchGraphQLZone({ token, window, attempts }) {
   try {
-    const data = await gqlRequest(token, QUERY_ZONE, { since });
-    let workers = 0;
-    for (const z of data?.viewer?.zones ?? []) workers += sumRequests(z.workersZoneInvocationsAdaptiveGroups);
+    const data = await gqlRequest(token, QUERY_ZONE, {
+      since: window.since.toISOString(),
+      until: window.end.toISOString(),
+    });
+    const groups = (data?.viewer?.zones ?? []).flatMap((zone) => zone.workersZoneInvocationsAdaptiveGroups ?? []);
     return {
-      usage: { 'workers-requests': workers, 'kv-reads': null, 'kv-writes': null, 'r2-class-a': null },
+      usage: { 'workers-requests': sumRequests(groups), 'kv-reads': null, 'kv-writes': null },
       source: 'graphql-zone',
-      notes: ['zone fallback: KV/R2 metrics unavailable'],
+      notes: ['zone fallback: KV metrics unavailable'],
     };
   } catch (e) {
     attempts.push(`graphql-zone: ${e.message}`);
@@ -252,49 +203,18 @@ async function fetchGraphQLZone({ token, since, attempts }) {
   }
 }
 
-async function fetchRestProbes({ token, accountId, attempts }) {
-  // Probe 1: account insights (expected: no route with account-owned tokens).
-  try {
-    const res = await fetch(
-      `${API}/accounts/${accountId}/insights/granularity/daily?since=${encodeURIComponent(
-        '-1d',
-      )}&fields=threatAction`,
-      { headers: { authorization: `Bearer ${token}` } },
-    );
-    attempts.push(`rest-account-insights: HTTP ${res.status}`);
-  } catch (e) {
-    attempts.push(`rest-account-insights: ${e.message}`);
-  }
-  // Probe 2: zone analytics dashboard (expected: account-owned token rejected, code 1016).
-  try {
-    const zres = await fetch(`${API}/zones?per_page=1`, { headers: { authorization: `Bearer ${token}` } });
-    const zjson = await zres.json().catch(() => null);
-    const zoneId = zjson?.result?.[0]?.id;
-    if (zoneId) {
-      const stop = new Date();
-      const start = new Date(stop.getTime() - 86400000);
-      const res = await fetch(
-        `${API}/zones/${zoneId}/analytics/dashboard?since=${start.toISOString()}&stop=${stop.toISOString()}`,
-        { headers: { authorization: `Bearer ${token}` } },
-      );
-      attempts.push(`rest-zone-analytics: HTTP ${res.status}`);
-    } else {
-      attempts.push('rest-zone-analytics: no zone id');
-    }
-  } catch (e) {
-    attempts.push(`rest-zone-analytics: ${e.message}`);
-  }
-  return null;
-}
-
-/** Run the endpoint chain; throw AggregateError-style Error if every source fails. */
-export async function fetchUsageWithFallback({ token, accountId, since }) {
+/** Fetch bounded yesterday and today windows. Empty metrics remain null as missing data. */
+export async function fetchUsageWithFallback({ token, accountId, now = new Date() }) {
+  const windows = usageWindows(now);
   const attempts = [];
-  const ctx = { token, accountId, since, attempts };
-  const result =
-    (await fetchGraphQLAccount(ctx)) || (await fetchGraphQLZone(ctx)) || (await fetchRestProbes(ctx));
-  if (!result) throw new Error(`all usage endpoints failed -> ${attempts.join(' | ')}`);
-  return { ...result, attempts };
+  const results = {};
+  for (const period of ['yesterday', 'today']) {
+    const ctx = { token, accountId, window: windows[period], attempts };
+    const result = await fetchGraphQLAccount(ctx) || await fetchGraphQLZone(ctx);
+    if (!result) throw new Error(`all usage endpoints failed for ${period} -> ${attempts.join(' | ')}`);
+    results[period] = result;
+  }
+  return { yesterday: results.yesterday, today: results.today, attempts, windows };
 }
 
 // ---------------------------------------------------------------- issue via gh
@@ -333,9 +253,11 @@ function fmt(n) {
   return typeof n === 'number' ? n.toLocaleString('en-US') : 'n/a';
 }
 
-function printUsage(usage, source, since, notes = []) {
-  console.log(`source: ${source}`);
-  console.log(`window: ${since.toISOString()} -> ${new Date().toISOString()} (UTC day so far)`);
+function printUsage(period, result, notes = []) {
+  const { usage, source } = result;
+  const { since, end } = result.window;
+  console.log(`${period} source: ${source}`);
+  console.log(`${period} window: ${since.toISOString()} -> ${end.toISOString()} (end exclusive)`);
   console.log('metric              used          threshold   limit        status');
   for (const m of METRICS) {
     const v = usage[m.key];
@@ -355,20 +277,36 @@ async function main() {
     console.error('[usage-check] missing CF_API_TOKEN or CF_ACCOUNT_ID env');
     process.exit(2);
   }
-  const since = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()));
-
   let result;
   try {
-    result = await fetchUsageWithFallback({ token, accountId, since });
+    result = await fetchUsageWithFallback({ token, accountId });
   } catch (e) {
     console.error(`[usage-check] usage fetch failed: ${e.message}`);
     process.exit(2);
   }
 
-  printUsage(result.usage, result.source, since, result.notes);
-  const alerts = evaluateUsage(result.usage);
+  for (const period of ['yesterday', 'today']) {
+    result[period].window = result.windows[period];
+    printUsage(period, result[period], result[period].notes);
+  }
+  const missing = ['yesterday', 'today'].flatMap((period) =>
+    METRICS.filter(({ key }) => !Number.isFinite(result[period].usage[key])).map(({ key }) => `${period}/${key}`),
+  );
+  if (missing.length) {
+    console.warn(`[usage-check] monitoring incomplete: ${missing.join(', ')}`);
+  }
+  const earlyWarnings = evaluateUsage(result.today.usage);
+  if (earlyWarnings.length) {
+    console.warn(`[usage-check] current UTC day already exceeds threshold: ${earlyWarnings.map(({ key }) => key).join(', ')}`);
+  }
+  if (missing.some((metric) => metric.startsWith('yesterday/'))) {
+    console.error('[usage-check] previous UTC day is incomplete; no complete daily report can be issued');
+    process.exitCode = 2;
+    return;
+  }
+  const alerts = evaluateUsage(result.yesterday.usage);
   if (!alerts.length) {
-    console.log('[usage-check] no metric over alert threshold');
+    console.log('[usage-check] no previous-day metric over alert threshold');
     return;
   }
   console.log(`[usage-check] over threshold: ${alerts.map((a) => a.key).join(', ')}`);
@@ -391,7 +329,7 @@ async function main() {
     return;
   }
   const title = buildIssueTitle(pending);
-  const body = buildIssueBody(result.usage, pending, result.source, since);
+  const body = buildIssueBody(result.yesterday.usage, pending, result.yesterday.source, result.windows.yesterday.since, result.windows.yesterday.end);
   try {
     const url = gh(['issue', 'create', '--label', 'usage-alert', '--title', title, '--body', body]);
     console.log(`[usage-check] created: ${url}`);

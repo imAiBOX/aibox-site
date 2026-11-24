@@ -14,6 +14,7 @@
 
 export const GITHUB_UPSTREAM = 'https://api.github.com/';
 export const PROXY_CACHE_SECONDS = 1800; // 30 min — release metadata rarely changes faster
+export const PROXY_STALE_SECONDS = 86400; // retain last successful copy for one day
 export const UPSTREAM_TIMEOUT_MS = 6000;
 
 /** Allowed upstream path prefixes (own repos only). */
@@ -39,7 +40,7 @@ export function resolveProxyPath(requestUrl: string): { ok: true; rel: string } 
   }
   const rel = url.searchParams.get('path') ?? '';
   if (!rel) return { ok: false, reason: 'missing path parameter (use /api/github?path=...)' };
-  if (!isAllowedGithubPath(rel)) return { ok: false, reason: 'path not allowed' };
+  if (!isAllowedGithubPath(rel) || !/^repos\/imAiBOX\/[A-Za-z0-9_.-]+\/(?:releases\/latest|releases\/tags\/[A-Za-z0-9_.-]+|contents\/[A-Za-z0-9_./-]+)$/.test(rel)) return { ok: false, reason: 'path not allowed' };
   return { ok: true, rel };
 }
 

@@ -3,25 +3,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   METRICS,
-  classifyR2Action,
   kvCounts,
-  r2ClassACount,
   evaluateUsage,
   buildIssueTitle,
   buildIssueBody,
   pendingAlerts,
+  usageWindows,
+  fetchUsageWithFallback,
 } from './usage-check.mjs';
 
 test('METRICS covers required free-tier limits', () => {
   const keys = METRICS.map((m) => m.key);
-  assert.deepEqual(keys, ['workers-requests', 'kv-reads', 'kv-writes', 'r2-class-a']);
+  assert.deepEqual(keys, ['workers-requests', 'kv-reads', 'kv-writes']);
   const byKey = Object.fromEntries(METRICS.map((m) => [m.key, m]));
   assert.equal(byKey['workers-requests'].limit, 100_000);
   assert.equal(byKey['workers-requests'].threshold, 70_000);
   assert.equal(byKey['kv-reads'].threshold, 70_000);
   assert.equal(byKey['kv-writes'].limit, 1_000);
   assert.equal(byKey['kv-writes'].threshold, 700);
-  assert.equal(byKey['r2-class-a'].threshold, 700_000);
 });
 
 test('evaluateUsage: below and at threshold do not alert, above does', () => {
@@ -29,7 +28,6 @@ test('evaluateUsage: below and at threshold do not alert, above does', () => {
     'workers-requests': 70_000, // exactly at threshold -> no alert (strict >)
     'kv-reads': 70_001,
     'kv-writes': 700,
-    'r2-class-a': null, // no data -> never alerts
   };
   const alerts = evaluateUsage(usage);
   assert.deepEqual(alerts.map((a) => a.key), ['kv-reads']);
@@ -38,6 +36,17 @@ test('evaluateUsage: below and at threshold do not alert, above does', () => {
 
 test('evaluateUsage: missing metric key treated as no data', () => {
   assert.deepEqual(evaluateUsage({}), []);
+});
+
+test('usageWindows returns bounded UTC yesterday and today intervals', () => {
+  const windows = usageWindows(new Date('2026-11-15T23:00:00Z'));
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(windows).map(([name, window]) => [name, [window.since.toISOString(), window.end.toISOString()]])),
+    {
+      yesterday: ['2026-11-14T00:00:00.000Z', '2026-11-15T00:00:00.000Z'],
+      today: ['2026-11-15T00:00:00.000Z', '2026-11-15T23:00:00.000Z'],
+    },
+  );
 });
 
 test('buildIssueTitle is deterministic and includes date + metric keys', () => {
@@ -78,28 +87,47 @@ test('kvCounts splits read vs everything else', () => {
   assert.equal(writes, 5); // write + delete both count as writes (conservative)
 });
 
-test('classifyR2Action: known Class A / B / free, unknown defaults to Class A', () => {
-  assert.equal(classifyR2Action('PutObject'), 'a');
-  assert.equal(classifyR2Action('put_object'), 'a');
-  assert.equal(classifyR2Action('GetObject'), 'b');
-  assert.equal(classifyR2Action('HeadObject'), 'b');
-  assert.equal(classifyR2Action('DeleteObject'), 'free');
-  assert.equal(classifyR2Action('SomeNewOp'), 'a'); // conservative
-  assert.equal(classifyR2Action(undefined), 'a');
+test('kvCounts does not turn malformed traffic groups into zero usage', () => {
+  for (const group of [
+    { dimensions: { actionType: 'write' }, sum: {} },
+    { dimensions: {}, sum: { requests: 900 } },
+    { dimensions: { actionType: 'read' }, sum: { requests: -1 } },
+  ]) {
+    assert.deepEqual(kvCounts([group]), { reads: null, writes: null });
+  }
 });
 
-test('r2ClassACount only sums Class A ops', () => {
-  const total = r2ClassACount([
-    { dimensions: { actionType: 'PutObject' }, sum: { requests: 5 } },
-    { dimensions: { actionType: 'GetObject' }, sum: { requests: 100 } },
-    { dimensions: { actionType: 'DeleteObject' }, sum: { requests: 50 } },
-    { dimensions: { actionType: 'ListObjects' }, sum: { requests: 7 } },
-  ]);
-  assert.equal(total, 12);
+test('fetchUsageWithFallback sends separate bounded GraphQL windows and preserves missing data', async () => {
+  const calls = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, options) => {
+    const request = JSON.parse(options.body);
+    calls.push({ query: request.query, variables: request.variables });
+    return { ok: true, async json() {
+      return { data: { viewer: { accounts: [{ workers: [], pages: [], kv: [] }] } } };
+    } };
+  };
+  try {
+    const result = await fetchUsageWithFallback({
+      token: 'test-token',
+      accountId: 'account',
+      now: new Date('2026-11-15T23:00:00Z'),
+    });
+    assert.equal(calls.length, 2);
+    assert.deepEqual(calls.map(({ variables }) => [variables.since, variables.until]), [
+      ['2026-11-14T00:00:00.000Z', '2026-11-15T00:00:00.000Z'],
+      ['2026-11-15T00:00:00.000Z', '2026-11-15T23:00:00.000Z'],
+    ]);
+    assert.equal(calls.every(({ query }) => query.includes('datetime_lt: $until')), true);
+    assert.equal(calls.every(({ query }) => !query.includes('r2')), true);
+    assert.deepEqual(result.yesterday.usage, { 'workers-requests': null, 'kv-reads': null, 'kv-writes': null });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test('buildIssueBody contains metric table, source and no secrets', () => {
-  const usage = { 'workers-requests': 90_000, 'kv-reads': 10, 'kv-writes': null, 'r2-class-a': null };
+  const usage = { 'workers-requests': 90_000, 'kv-reads': 10, 'kv-writes': null };
   const alerts = evaluateUsage(usage);
   const body = buildIssueBody(usage, alerts, 'graphql-account', new Date('2026-11-15T00:00:00Z'));
   assert.match(body, /\| workers-requests \| 90,000 \|/);

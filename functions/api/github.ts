@@ -16,6 +16,7 @@
 import {
   GITHUB_UPSTREAM,
   PROXY_CACHE_SECONDS,
+  PROXY_STALE_SECONDS,
   UPSTREAM_TIMEOUT_MS,
   decideProxyResponse,
   proxyResponseHeaders,
@@ -23,14 +24,19 @@ import {
   type ProxyDecision,
 } from '../_lib/github-proxy.ts';
 
-type CachedCopy = { status: number; body: string } | null;
+type CachedCopy = { status: number; body: string; fresh: boolean } | null;
 
 /** Read the edge cache. Never throws (a cache hiccup must not kill the request). */
 async function readCache(request: Request): Promise<CachedCopy> {
   try {
     const hit = await caches.default.match(request);
     if (!hit) return null;
-    return { status: hit.status, body: await hit.text() };
+    const rawUntil = hit.headers.get('X-Aibox-Fresh-Until');
+    const until = Number(rawUntil);
+    const now = Date.now();
+    if (!hit.ok || rawUntil === null || !Number.isFinite(until) ||
+        now >= until + (PROXY_STALE_SECONDS - PROXY_CACHE_SECONDS) * 1000) return null;
+    return { status: hit.status, body: await hit.text(), fresh: now < until };
   } catch {
     return null;
   }
@@ -42,7 +48,7 @@ async function writeCache(request: Request, decision: ProxyDecision): Promise<vo
   try {
     const res = new Response(decision.body, {
       status: decision.status,
-      headers: proxyResponseHeaders('fresh'),
+      headers: { ...proxyResponseHeaders('fresh'), 'X-Aibox-Fresh-Until': String(Date.now() + PROXY_CACHE_SECONDS * 1000), 'Cache-Control': `public, max-age=${PROXY_STALE_SECONDS}, s-maxage=${PROXY_STALE_SECONDS}` },
     });
     await caches.default.put(request, res);
   } catch {
@@ -64,9 +70,15 @@ export const onRequest: PagesFunction = async ({ request }) => {
       });
     }
 
-    const cached = await readCache(request);
+    // Canonical key: equivalent query encodings/order map to one cache entry.
+    const cacheKey = new Request(`https://aibox.im/api/github?path=${encodeURIComponent(resolved.rel)}`, { method: 'GET' });
+    const cached = await readCache(cacheKey);
 
     let decision: ProxyDecision;
+    if (cached?.fresh) {
+      decision = { status: cached.status, body: cached.body, cacheState: 'fresh' };
+      return new Response(decision.body, { status: decision.status, headers: proxyResponseHeaders(decision.cacheState) });
+    }
     try {
       const upstream = await fetch(GITHUB_UPSTREAM + resolved.rel, {
         headers: {
@@ -90,7 +102,7 @@ export const onRequest: PagesFunction = async ({ request }) => {
       });
     }
 
-    await writeCache(request, decision);
+    await writeCache(cacheKey, decision);
 
     return new Response(decision.body, {
       status: decision.status,
@@ -106,4 +118,4 @@ export const onRequest: PagesFunction = async ({ request }) => {
   }
 };
 
-export { PROXY_CACHE_SECONDS };
+export { PROXY_CACHE_SECONDS, PROXY_STALE_SECONDS };
