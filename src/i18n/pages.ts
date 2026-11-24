@@ -646,7 +646,7 @@ const en = {
       nodeNote: 'Yours missing or too old? AiBOX installs a supported Node.js next to it and leaves the one you already have untouched.',
       osH: 'Platforms',
       dataH: 'Config & data',
-      configH: 'Config file written to',
+      configH: 'Configuration file',
       dataNote: 'Everything stays on your own machine — nothing is uploaded. To uninstall, delete these folders.',
       updatedH: 'Registry data updated',
       placeholder: 'placeholder · registry unavailable',
@@ -666,7 +666,7 @@ const en = {
         },
         {
           t: 'Follow the wizard',
-          d: 'It downloads with a checksum check, writes the config and fills in your API key if the app needs one. You just click.',
+          d: 'AiBOX checks the download. If the desktop wizard offers configuration for your app, system and provider, review and confirm it there. For manual setup, follow the guide and enter any credentials in the app. Test the connection in the app when finished.',
           cta: '',
         },
       ],
@@ -681,13 +681,13 @@ const en = {
     },
     providers: {
       heading: 'Model / API key setup',
-      lede: 'AiBOX fills this in for you during the wizard — this section is for setting it up by hand.',
+      lede: 'Review the available providers here. Use the desktop wizard when it offers configuration for your setup, or follow the app guide to configure it locally.',
       local: 'Local model — no API key needed.',
       oauth: 'Sign in with your account instead — no key to copy.',
       apiKey: 'You need an API key from the provider.',
       getKey: 'Get a key',
       sharedWith: 'The same key works for {count} other apps here.',
-      writtenTo: 'Written to',
+      writtenTo: 'Configuration path from the catalog',
       names: {
         openrouter: 'OpenRouter',
         anthropic: 'Anthropic (Claude)',
@@ -1396,7 +1396,7 @@ const zh: PagesDict = {
         },
         {
           t: '跟着向导点',
-          d: '自动下载并校验、写配置文件，需要 key 时帮你填好。你只管点下一步。',
+          d: 'AiBOX 会校验下载文件。如果桌面向导支持你所选应用、系统和服务商的配置，请在向导里检查并确认。需要手动配置时，按教程在应用内填写所需凭据。完成后在应用中测试连接。',
           cta: '',
         },
       ],
@@ -1411,13 +1411,13 @@ const zh: PagesDict = {
     },
     providers: {
       heading: '模型 / API key 配置',
-      lede: '用 AiBOX 安装时向导会自动填好——这一节给想手动配置的人。',
+      lede: '在这里查看可用的服务商。如果桌面向导提供配置选项，可在向导内确认。需要手动配置时，请按应用教程在本机操作。',
       local: '本地模型，无需 API key。',
       oauth: '用账号登录即可，不用复制 key。',
       apiKey: '需要服务商的 API key。',
       getKey: '去拿 key',
       sharedWith: '同一个 key 在这里还能用于另外 {count} 个应用。',
-      writtenTo: '写入到',
+      writtenTo: '目录记录的配置路径',
       names: {
         openrouter: 'OpenRouter',
         anthropic: 'Anthropic（Claude）',

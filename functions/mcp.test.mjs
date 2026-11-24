@@ -1,53 +1,174 @@
-// Offline unit tests for the MCP JSON-RPC dispatcher (node --test, Node 22 type stripping).
+// Offline MCP tests. Registry assets are served by an in-memory Pages binding.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { handleRpc, handleBody } from './_lib/mcp-rpc.ts';
+import { onRequest } from './mcp.ts';
+import { onRequest as onCanonicalRequest } from './.well-known/mcp.ts';
 
-test('initialize echoes protocolVersion and returns serverInfo', () => {
-  const res = handleRpc({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-03-18' } });
-  assert.equal(res?.result?.protocolVersion, '2025-03-18');
+const call = (args, name = 'get_aibox_info') => ({ jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name, arguments: args } });
+const text = (r) => r?.result?.content?.[0]?.text ?? '';
+
+const profiles = {
+  '/meta/apps/chatbox/app.json': {
+    id: 'chatbox', name: 'Chatbox', version: '1.24.4',
+    packages: [{ kind: 'app', platforms: ['windows', 'macos'] }],
+    modelProviders: {
+      openai: {
+        authType: 'api-key', configWritable: true, configTarget: '~/AppData/Roaming/Chatbox/config.json',
+        configWrite: { format: 'json', fields: [{ path: 'settings.providers.openai.apiKey', value: '<apiKey>' }] },
+      },
+    },
+  },
+  '/meta/apps/zed/app.json': {
+    id: 'zed', name: 'Zed', version: '1.29.3',
+    packages: [{ kind: 'app', platforms: ['windows', 'macos'] }],
+    modelProviders: { openai: { authType: 'api-key', configWritable: false } },
+  },
+};
+
+function endpointRequest(msg, pathname = '/mcp') {
+  return new Request(`https://aibox.im${pathname}`, { method: 'POST', body: JSON.stringify(msg) });
+}
+
+const assets = {
+  async fetch(request) {
+    assert.equal(request.method, 'GET');
+    const url = new URL(request.url);
+    assert.equal(url.origin, 'https://aibox.im');
+    const profile = profiles[url.pathname];
+    return profile ? Response.json(profile) : new Response(null, { status: 404 });
+  },
+};
+
+test('initialize returns serverInfo and negotiated protocolVersion', async () => {
+  const res = await handleRpc({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-03-26' } });
+  assert.equal(res?.result?.protocolVersion, '2025-03-26');
   assert.deepEqual(res?.result?.serverInfo, { name: 'aibox-im', version: '1.0.0' });
   assert.ok(res?.result?.capabilities?.tools);
 });
 
-test('initialize without version uses fallback', () => {
-  const res = handleRpc({ jsonrpc: '2.0', id: 2, method: 'initialize' });
+test('initialize without version uses fallback', async () => {
+  const res = await handleRpc({ jsonrpc: '2.0', id: 2, method: 'initialize' });
   assert.equal(res?.result?.protocolVersion, '2025-03-26');
 });
 
-test('tools/list returns get_aibox_info with enum schema', () => {
-  const res = handleRpc({ jsonrpc: '2.0', id: 3, method: 'tools/list' });
+test('initialize does not echo an unsupported protocol version', async () => {
+  const res = await handleRpc({ jsonrpc: '2.0', id: 2, method: 'initialize', params: { protocolVersion: '2099-01-01' } });
+  assert.equal(res?.result?.protocolVersion, '2025-03-26');
+});
+
+test('both MCP paths decline unsupported SSE streams', async () => {
+  for (const [path, handler] of [['/mcp', onRequest], ['/.well-known/mcp', onCanonicalRequest]]) {
+    const request = new Request(`https://aibox.im${path}`, { headers: { Accept: 'text/event-stream' } });
+    assert.equal((await handler({ request, env: { ASSETS: assets } })).status, 405);
+  }
+});
+
+test('tools/list describes the read-only tool and accepted arguments', async () => {
+  const res = await handleRpc({ jsonrpc: '2.0', id: 3, method: 'tools/list' });
   const tools = res?.result?.tools;
   assert.ok(Array.isArray(tools) && tools.length === 1);
   assert.equal(tools[0].name, 'get_aibox_info');
-  assert.deepEqual(tools[0].inputSchema.properties.section.enum, ['product', 'download', 'apps']);
+  assert.equal(tools[0].annotations.readOnlyHint, true);
+  assert.equal(tools[0].inputSchema.additionalProperties, false);
+  assert.deepEqual(tools[0].inputSchema.properties.section.enum, ['product', 'download', 'apps', 'guidance']);
 });
 
-test('tools/call sections return distinct text payloads', () => {
-  const product = handleRpc({ jsonrpc: '2.0', id: 4, method: 'tools/call', params: { arguments: { section: 'product' } } });
-  const download = handleRpc({ jsonrpc: '2.0', id: 5, method: 'tools/call', params: { arguments: { section: 'download' } } });
-  const apps = handleRpc({ jsonrpc: '2.0', id: 6, method: 'tools/call', params: { arguments: { section: 'apps' } } });
-  const text = (r) => r?.result?.content?.[0]?.text ?? '';
-  assert.match(text(product), /Installed until it works/);
-  assert.match(text(download), /releases\/latest/);
-  assert.match(text(apps), /meta\/index\.json/);
-  assert.match(text(apps), /meta\/apps\/\{id\}\/app\.json/); // 端点路径与 gen-meta 实际产出一致
-  assert.doesNotMatch(text(apps), /meta\/apps\/\{id\}\.json/); // 防止回退到错误路径
-  assert.notEqual(text(product), text(download));
+test('download guidance points to the localized download page and requested file type', async () => {
+  const mac = text(await handleRpc(call({ section: 'download', lang: 'zh', platform: 'macos' })));
+  const win = text(await handleRpc(call({ section: 'download', platform: 'windows' })));
+  const both = text(await handleRpc(call({ section: 'download' })));
+  assert.match(mac, /官方下载页 https:\/\/aibox\.im\/zh\/download\/.*macOS.*\.dmg/);
+  assert.doesNotMatch(mac, /\.exe|releases\/latest/);
+  assert.match(win, /https:\/\/aibox\.im\/en\/download\/.*Windows x64 \(\.exe\)/);
+  assert.doesNotMatch(win, /\.dmg|releases\/latest/);
+  assert.match(both, /\.exe.*\.dmg/);
 });
 
-test('unknown method returns -32601 with id preserved', () => {
-  const res = handleRpc({ jsonrpc: '2.0', id: 9, method: 'resources/list' });
+test('overview defaults to product and the apps section points to the static catalog', async () => {
+  assert.match(text(await handleRpc(call())), /Installed until it works/);
+  const apps = text(await handleRpc(call({ section: 'apps' })));
+  assert.match(apps, /meta\/index\.json/);
+  assert.match(apps, /meta\/apps\/\{id\}\/app\.json/);
+});
+
+test('tool names and arguments are validated before reading a profile', async () => {
+  for (const msg of [
+    call({}, 'install'),
+    { ...call(), params: { section: 'download' } },
+    { ...call(), params: { name: 'get_aibox_info', unknown: true } },
+    { ...call(), params: { name: 'get_aibox_info', _meta: null } },
+    call(null),
+    call([]),
+    call({ section: 'unknown' }),
+    call({ section: 'download', lang: 'fr' }),
+    call({ section: 'download', platform: 'linux' }),
+    call({ section: 'apps', platform: 'macos' }),
+    call({ section: 'download', apiKey: 'test' }),
+    call({ section: 'guidance', appId: 'chatbox' }),
+    call({ section: 'guidance', appId: '../chatbox', provider: 'openai', platform: 'windows' }),
+  ]) {
+    let reads = 0;
+    const res = await handleRpc(msg, async () => { reads += 1; });
+    assert.equal(res?.error?.code, -32602, JSON.stringify(msg));
+    assert.equal(res?.id, 4);
+    assert.equal(res?.result, undefined);
+    assert.equal(reads, 0);
+  }
+});
+
+test('both routes use the local catalog for app, provider and platform guidance', async () => {
+  const query = { section: 'guidance', platform: 'windows', appId: 'chatbox', provider: 'openai' };
+  const windows = await onRequest({ request: endpointRequest(call(query)), env: { ASSETS: assets } });
+  const zed = await onCanonicalRequest({ request: endpointRequest(call({ ...query, appId: 'zed' }), '/.well-known/mcp'), env: { ASSETS: assets } });
+  const mac = await onRequest({ request: endpointRequest(call({ ...query, platform: 'macos', lang: 'zh' })), env: { ASSETS: assets } });
+  const chatboxText = text(await windows.json());
+  const zedText = text(await zed.json());
+  const macText = text(await mac.json());
+  assert.match(chatboxText, /Chatbox.*openai.*Windows.*\nDesktop wizard configuration is available/);
+  assert.match(chatboxText, /confirm.*test message/);
+  assert.match(zedText, /Zed.*openai.*Windows.*\nConfigure the provider manually/);
+  assert.match(zedText, /https:\/\/aibox\.im\/en\/apps\/zed\//);
+  assert.match(macText, /macOS.*\n请按应用教程在本机手动配置/);
+  assert.match(macText, /https:\/\/aibox\.im\/zh\/apps\/chatbox\//);
+});
+
+test('unknown catalog app, provider and unavailable snapshots receive explicit errors', async () => {
+  const query = { section: 'guidance', platform: 'windows', appId: 'chatbox', provider: 'openai' };
+  for (const [args, message] of [
+    [{ ...query, appId: 'unknown' }, /No catalog entry/],
+    [{ ...query, provider: 'unknown' }, /Provider is not listed/],
+  ]) {
+    const response = await onRequest({ request: endpointRequest(call(args)), env: { ASSETS: assets } });
+    const res = await response.json();
+    assert.equal(res.error.code, -32602);
+    assert.match(res.error.message, message);
+  }
+  const windowsOnly = await handleRpc(call({ ...query, platform: 'macos' }), async () => ({
+    ...profiles['/meta/apps/chatbox/app.json'],
+    packages: [{ kind: 'app', platforms: ['windows'] }, { kind: 'runtime', platforms: ['macos'] }],
+  }));
+  assert.equal(windowsOnly?.error?.code, -32602);
+  assert.match(windowsOnly?.error?.message, /No app package listed for this platform/);
+  const failure = await handleRpc(call(query), async () => { throw new Error('asset failure'); });
+  assert.equal(failure?.error?.code, -32603);
+});
+
+test('unknown method returns -32601 with id preserved', async () => {
+  const res = await handleRpc({ jsonrpc: '2.0', id: 9, method: 'resources/list' });
   assert.equal(res?.error?.code, -32601);
   assert.equal(res?.id, 9);
 });
 
-test('notifications return null (no response)', () => {
-  assert.equal(handleRpc({ jsonrpc: '2.0', method: 'notifications/initialized' }), null);
-  assert.equal(handleRpc({ jsonrpc: '2.0', method: 'notifications/cancelled' }), null);
+test('notifications return an empty 202 response', async () => {
+  const notification = { jsonrpc: '2.0', method: 'notifications/initialized' };
+  assert.equal(await handleRpc(notification), null);
+  const res = await onRequest({ request: endpointRequest(notification), env: { ASSETS: assets } });
+  assert.equal(res.status, 202);
+  assert.equal(await res.text(), '');
 });
 
-test('handleBody rejects malformed JSON with parse error', () => {
-  const res = handleBody('{not json');
-  assert.equal(res.error.code, -32700);
+test('handleBody distinguishes malformed JSON from invalid requests', async () => {
+  assert.equal((await handleBody('{not json')).error.code, -32700);
+  assert.equal((await handleBody('null')).error.code, -32600);
 });
