@@ -3,7 +3,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import ReleaseInfo from '../../components/ReleaseInfo.tsx';
-import { fetchReleaseSnapshot } from '../../data/release';
+import { releaseSnapshot as snapshot } from '../../data/release';
 import { pt, type Lang } from '../../i18n/pages';
 
 interface Props {
@@ -11,9 +11,6 @@ interface Props {
 }
 const { lang } = Astro.props;
 const c = pt(lang).download;
-
-// 构建时快照（失败降级 null，构建不炸）→ 岛的回落数据
-const snapshot = await fetchReleaseSnapshot();
 
 const title = lang === 'zh' ? '下载 AiBOX - Windows 与 macOS 便携版与校验值 | aibox.im' : 'Download AiBOX - portable Windows & macOS builds with checksums | aibox.im';
 const description =
@@ -25,8 +22,8 @@ const RELEASE_URL = 'https://github.com/imAiBOX/aibox-app/releases/latest';
 // 平台按钮直达对应安装包（构建时快照里有真实 tag + 资产直链）。
 // 旧行为两个按钮都跳 releases/latest 泛页 —— 小白点「Download for macOS」
 // 后还要自己在资产列表里找 .dmg，容易拿错文件。
-const winAsset = snapshot?.assets.find((a) => /\.exe$/i.test(a.name));
-const macAsset = snapshot?.assets.find((a) => /\.dmg$/i.test(a.name));
+const winAsset = snapshot.assets.find((a) => /\.exe$/i.test(a.name));
+const macAsset = snapshot.assets.find((a) => /\.dmg$/i.test(a.name));
 const winHref = winAsset?.url ?? RELEASE_URL;
 const macHref = macAsset?.url ?? RELEASE_URL;
 ---
@@ -63,7 +60,7 @@ const macHref = macAsset?.url ?? RELEASE_URL;
       <a class="text-aibox-info hover:text-aibox-green" href={`/${lang}/guides/gatekeeper/`}>{c.mac.help} →</a>
     </p>
 
-    <!-- 版本 / SHA-256 展示区（React 岛：fetch GitHub API + 5min 缓存，失败回落构建时快照） -->
+    <!-- 下载按钮与校验值来自同一份已核验发布快照。 -->
     <div class="mt-8 max-w-3xl">
       <ReleaseInfo client:load snapshot={snapshot} labels={c.release} />
     </div>
