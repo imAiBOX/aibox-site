@@ -25,7 +25,7 @@ export const KNOWN_APPS: Set<string> = new Set([
   'stable-diffusion-webui',
 ]);
 
-/** Dedupe key: one KV flag write per app/type/day (keeps writes ≪ 1000/day). */
+/** Legacy key format retained for inventory and retirement tooling only. */
 export function dedupeKey(appId: string, type: 'view' | 'install'): string {
   const d = new Date();
   const day = `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, '0')}${String(d.getUTCDate()).padStart(2, '0')}`;
@@ -49,12 +49,12 @@ export const GITHUB_ALLOW_PREFIX: string[] = ['repos/imAiBOX/'];
 // 这里保留导出只为兼容既有引用（`stats.test.mjs` 与旧调用点）。
 export { isAllowedGithubPath } from './github-proxy.ts';
 
-/** Anonymous device id: 8-64 chars of hex/uuid fragments. Random local UUID only. */
+/** Legacy aid validator; no active collection endpoint accepts or persists aids. */
 export function isValidAid(aid: unknown): aid is string {
   return typeof aid === 'string' && /^[0-9a-f-]{8,64}$/.test(aid);
 }
 
-/** Dedupe key including device id (falls back to per-app/type when aid missing). */
+/** Legacy key format retained for inventory and retirement tooling only. */
 export function dedupeKeyWithAid(appId: string, type: 'view' | 'install', aid?: string): string {
   const base = dedupeKey(appId, type);
   return isValidAid(aid) ? `${base}:${aid}` : base;

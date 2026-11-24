@@ -2,7 +2,7 @@
 
 Tiny Worker behind **`https://dl.aibox.im`** that serves release downloads with
 an **R2 mirror first** (streamed by the Worker, zero egress) and a GitHub
-Releases fallback, plus a best-effort daily redirect counter in Workers KV.
+Releases fallback. Remote click counting is disabled; redirects do not access KV.
 
 ## Routes
 
@@ -14,7 +14,7 @@ Releases fallback, plus a best-effort daily redirect counter in Workers KV.
 | `GET /vX.Y.Z/win` | 302 → **`/file/AiBOX-vX.Y.Z-windows-x64.exe`** when mirrored, else GitHub asset |
 | `GET /vX.Y.Z/mac` | 302 → **`/file/AiBOX-vX.Y.Z-macos-universal.dmg`** when mirrored, else GitHub asset |
 | `GET /file/<name>` | 200 — release asset streamed from R2 (404 if not mirrored) |
-| `GET /count` | 200 JSON — today's counters (approximate) |
+| `GET /count` | 200 JSON — `{ enabled: false }` (counter disabled) |
 | anything else | 404 plain text |
 
 All redirects use `302` with `Cache-Control: no-store` (targets change when a
@@ -47,26 +47,15 @@ tier: **10 GB storage**, 1M Class A / 10M Class B ops per month, **$0 egress**).
 - **Object-name rules**: single safe path segment (`[A-Za-z0-9][A-Za-z0-9._-]*`,
   ≤128 chars) — no traversal, no leading dot; anything else is 404.
 
-## Click counting — design & trade-offs
+## Click counting and privacy
 
-Free-tier limits that shape the design: **Workers 100k requests/day**, **KV
-100k reads / 1,000 writes per day** (writes are the scarce resource).
-
-- **Daily key**: `count:<YYYY-MM-DD>` (UTC), JSON `{total, latest, version, asset}`.
-  One read + one write per redirect.
-- **Non-blocking**: the increment runs in `ctx.waitUntil()` — the 302 is sent
-  first; a KV failure can never delay or break a download link.
-- **Write cap (`DAILY_WRITE_CAP = 950`)**: once the day's tally reaches the cap,
-  the Worker stops writing for the rest of the day instead of hammering a
-  rejected API. **Accepted degradation: past ~950 redirects/day the counter
-  freezes and only redirects continue** — downloads are never affected.
-- **Approximate by nature**: KV is eventually consistent (last-write-wins), so
-  concurrent clicks can be lost. Treat the number as a rough download gauge,
-  not billing-grade analytics. For exact numbers use Cloudflare Web Analytics
-  (free, cookieless) on the main site instead.
-- **Why not alternatives**: Durable Objects would give exact counts but exceed
-  the intended scope of this tiny link service; Analytics Engine needs an
-  enabled/dataset setup for little gain at this traffic level.
+Remote counting is disabled. `/count` returns `{ "enabled": false }` and
+redirect handling makes no KV reads or writes. Historical `count:<YYYY-MM-DD>`
+keys may remain in the bound namespace; they are not read or deleted by this
+Worker. Preserve the namespace and its data until a separate review establishes
+ownership, retention, and account-wide impact. Any retirement must inventory
+keys first and delete bounded batches with an explicit approval; never bulk
+purge as part of deployment.
 
 ## Layout
 
@@ -113,7 +102,7 @@ curl -I https://dl.aibox.im/file/AiBOX-v0.1.3-windows-x64.exe
                                           # 200 + long cache + exact Content-Length
                                           # (404 when that release is not mirrored)
 curl -s  https://dl.aibox.im/             # 200 index page
-curl -s  https://dl.aibox.im/count        # today's counters (JSON)
+curl -s  https://dl.aibox.im/count        # confirms counters are disabled (JSON)
 ```
 
 ## KV red line (free tier)

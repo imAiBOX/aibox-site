@@ -1,5 +1,6 @@
 # Cloudflare Pages project config (direct upload mode).
-# Declares the KV binding for /api/stats counters — wrangler pages deploy reads this.
+# Legacy stats KV binding retained for reads/inventory only; the endpoint no
+# longer reads or writes it. Remove only after separate namespace retirement review.
 name = "aibox-site"
 pages_build_output_dir = "dist"
 

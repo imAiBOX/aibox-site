@@ -133,11 +133,11 @@ const en = {
 
   privacy: {
     title: 'Privacy',
-    lede: 'The short version: there is almost nothing to collect, because there is no backend.',
+    lede: 'The short version: the website does not collect visitor analytics or persistent identifiers.',
     blocks: [
       {
         h: 'This website',
-        p: 'Pure static HTML served by Cloudflare Pages. No accounts, no cookies for tracking, no analytics scripts, no database. Your browser talks to our pages and nothing else.',
+        p: 'Pages are served by Cloudflare. We do not set tracking cookies or persistent visitor identifiers. App view/install counters and download redirect counters are disabled; the old stats endpoint returns no counters and accepts legacy event requests as no-ops. Cloudflare may process standard request logs for operations and security. The download page also requests public release metadata from GitHub.',
       },
       {
         h: 'Your API key',
@@ -873,11 +873,11 @@ const zh: PagesDict = {
 
   privacy: {
     title: '隐私说明',
-    lede: '一句话：没有后端，所以几乎没什么可收集的。',
+    lede: '一句话：官网不收集访客统计，也不设置持久访客标识。',
     blocks: [
       {
         h: '这个网站',
-        p: '纯静态 HTML，由 Cloudflare Pages 托管。无账号、无追踪 Cookie、无统计脚本、无数据库。你的浏览器只跟我们的页面说话。',
+        p: '页面由 Cloudflare 托管。我们不设置追踪 Cookie 或持久访客标识。应用浏览/安装计数和下载跳转计数均已关闭；旧统计接口不返回历史计数，收到旧版上报也只作空操作。Cloudflare 可能为运维和安全处理标准请求日志。下载页也会向 GitHub 请求公开版本信息。',
       },
       {
         h: '你的 API key',

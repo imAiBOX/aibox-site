@@ -9,6 +9,23 @@ import {
   normalizeVersion,
   PLATFORM_SUFFIX,
 } from './index.js';
+import worker from './index.js';
+
+test('redirects remain functional without counter storage', async () => {
+  const ctx = { waitUntil() { assert.fail('redirect scheduled background writes'); } };
+  const cases = [
+    ['/latest', 'https://github.com/imAiBOX/aibox-app/releases/latest'],
+    ['/v0.1.3', 'https://github.com/imAiBOX/aibox-app/releases/tag/v0.1.3'],
+    ['/v0.1.3/win', 'https://github.com/imAiBOX/aibox-app/releases/download/v0.1.3/AiBOX-v0.1.3-windows-x64.exe'],
+  ];
+  for (const [path, location] of cases) {
+    const response = await worker.fetch(new Request(`https://dl.aibox.im${path}`), {}, ctx);
+    assert.equal(response.status, 302);
+    assert.equal(response.headers.get('location'), location);
+  }
+  const count = await worker.fetch(new Request('https://dl.aibox.im/count'), {}, ctx);
+  assert.deepEqual(await count.json(), { enabled: false, note: 'Remote click counting is disabled.' });
+});
 
 test('asset name mapping matches release asset naming', () => {
   assert.equal(assetName('v0.1.3', 'win'), 'AiBOX-v0.1.3-windows-x64.exe');

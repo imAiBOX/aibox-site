@@ -1,11 +1,7 @@
 // download short links: R2 mirror first (streamed by this Worker — zero egress),
-// GitHub Releases fallback + best-effort daily click count
+// GitHub Releases fallback. Redirects remain available; remote counting is disabled.
 const REPO = 'imAiBOX/aibox-app';
 const RELEASES = `https://github.com/${REPO}/releases`;
-// KV free tier: 1,000 writes/day (account-wide). Stop writing before the cap so
-// the counter degrades to read-only instead of failing writes all day.
-const DAILY_WRITE_CAP = 950;
-
 const VERSION_RE = /^v?\d+\.\d+\.\d+(?:[-.][0-9A-Za-z.-]+)?$/;
 // object names: one safe path segment (no traversal / no leading dot), bounded
 const OBJECT_NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
@@ -65,7 +61,7 @@ GET /v0.1.3          → release page for tag v0.1.3
 GET /v0.1.3/win      → Windows installer (.exe) direct download
 GET /v0.1.3/mac      → macOS disk image (.dmg) direct download
 GET /file/&lt;name&gt;    → 200 direct download of a mirrored release asset
-GET /count           → today's redirect count (JSON)</pre>
+GET /count           → counters disabled (JSON)</pre>
 <p>Mirrored assets stream from R2 through this Worker (no third-party
 redirect); links fall back to <a href="${RELEASES}">${REPO}</a> when a
 release is not mirrored yet.</p>
@@ -81,28 +77,6 @@ function normalizeVersion(raw) {
   return v.startsWith('v') ? v : `v${v}`;
 }
 
-// Best-effort counter: never throws, never blocks the redirect (runs in
-// waitUntil). Keyed per UTC day; KV writes are capped to stay inside the
-// free-tier daily write limit — beyond the cap the redirect still works and
-// counting silently stops for that day. KV is eventually consistent, so the
-// number is approximate under concurrency.
-async function countRedirect(env, kind) {
-  const day = new Date().toISOString().slice(0, 10);
-  const key = `count:${day}`;
-  try {
-    const raw = await env.HITS.get(key);
-    let tally = { total: 0, latest: 0, version: 0, asset: 0 };
-    if (raw) {
-      try { tally = { ...tally, ...JSON.parse(raw) }; } catch { /* keep zeros */ }
-    }
-    if (tally.total >= DAILY_WRITE_CAP) return;
-    tally.total += 1;
-    if (kind in tally) tally[kind] += 1;
-    await env.HITS.put(key, JSON.stringify(tally));
-  } catch {
-    /* counting is best-effort; a KV error must not affect the redirect */
-  }
-}
 
 // R2 existence probe for the mirror-first redirect: one cheap HEAD (Class B),
 // fails open to the GitHub fallback if the binding is missing or errors.
@@ -156,13 +130,7 @@ export default {
     if (path === '/') return indexPage();
 
     if (path === '/count') {
-      const day = new Date().toISOString().slice(0, 10);
-      let body = { date: day, note: 'approximate; best-effort counter' };
-      try {
-        const raw = await env.HITS.get(`count:${day}`);
-        if (raw) body = { ...body, ...JSON.parse(raw) };
-      } catch { /* serve zeros */ }
-      return new Response(JSON.stringify(body, null, 2), {
+      return new Response(JSON.stringify({ enabled: false, note: 'Remote click counting is disabled.' }), {
         headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
       });
     }
@@ -172,7 +140,6 @@ export default {
     }
 
     if (path === '/latest') {
-      ctx.waitUntil(countRedirect(env, 'latest'));
       return redirect(`${RELEASES}/latest`);
     }
 
@@ -180,14 +147,12 @@ export default {
     if (seg.length === 1) {
       const tag = normalizeVersion(seg[0]);
       if (tag) {
-        ctx.waitUntil(countRedirect(env, 'version'));
         return redirect(`${RELEASES}/tag/${tag}`);
       }
     } else if (seg.length === 2) {
       const tag = normalizeVersion(seg[0]);
       const platform = PLATFORM_SUFFIX[seg[1]] ? seg[1] : null;
       if (tag && platform) {
-        ctx.waitUntil(countRedirect(env, 'asset'));
         const name = assetName(tag, platform);
         const mirrored = await isMirrored(env, name);
         return redirect(assetRedirect(tag, platform, mirrored));

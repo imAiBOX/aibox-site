@@ -1,6 +1,6 @@
 // SEO 审计（一次性全量抽查 dist，build 后运行；缺项 exit 1）
 // 覆盖：20 应用落地页（en+zh，含手写 openclaw）的 title/description/JSON-LD/hreflang/canonical/
-//       StatsBadge 上报标记 + sitemap 收录。
+//       StatsBadge 停用状态 + sitemap 收录。
 // 用法: node scripts/seo-audit.mjs   （需先 pnpm build）
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -103,8 +103,9 @@ for (const id of ids) {
       }
     }
 
-    // StatsBadge 落地页 view 上报标记
-    if (!html.includes('data-stats-report="1"')) err(page, '缺 StatsBadge 上报标记 data-stats-report="1"');
+    // StatsBadge remains present without event-reporting hooks.
+    if (!html.includes('data-stats-app=')) err(page, '缺应用统计暂停提示');
+    if (html.includes('data-stats-report=') || html.includes('/api/stats')) err(page, '页面仍包含统计上报钩子');
 
     // sitemap 收录
     if (sitemap && !sitemap.includes(`${SITE}${page}`)) err(page, 'sitemap.xml 未收录');

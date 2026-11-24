@@ -9,10 +9,6 @@ routes = [
   { pattern = "dl.aibox.im", custom_domain = true }
 ]
 
-kv_namespaces = [
-  { binding = "HITS", id = "85edd16a07de43fbb2794f725703d1ab" }
-]
-
 # Release-asset mirror (R2) intentionally omitted: R2 enablement requires a
 # payment method on the account, which is out of scope for the free-only stack.
 # The /file route degrades to GitHub fallback when the BUCKET binding is absent.
