@@ -4,27 +4,12 @@ import assert from 'node:assert/strict';
 import { handleRpc, handleBody } from './_lib/mcp-rpc.ts';
 import { onRequest } from './mcp.ts';
 import { onRequest as onCanonicalRequest } from './.well-known/mcp.ts';
+import fixture from './_lib/config-capability-v1.fixtures.json' with { type: 'json' };
 
 const call = (args, name = 'get_aibox_info') => ({ jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name, arguments: args } });
 const text = (r) => r?.result?.content?.[0]?.text ?? '';
 
-const profiles = {
-  '/meta/apps/chatbox/app.json': {
-    id: 'chatbox', name: 'Chatbox', version: '1.24.4',
-    packages: [{ kind: 'app', platforms: ['windows', 'macos'] }],
-    modelProviders: {
-      openai: {
-        authType: 'api-key', configWritable: true, configTarget: '~/AppData/Roaming/Chatbox/config.json',
-        configWrite: { format: 'json', fields: [{ path: 'settings.providers.openai.apiKey', value: '<apiKey>' }] },
-      },
-    },
-  },
-  '/meta/apps/zed/app.json': {
-    id: 'zed', name: 'Zed', version: '1.29.3',
-    packages: [{ kind: 'app', platforms: ['windows', 'macos'] }],
-    modelProviders: { openai: { authType: 'api-key', configWritable: false } },
-  },
-};
+const profiles = Object.fromEntries(Object.entries(fixture.profiles).map(([id, profile]) => [`/meta/apps/${id}/app.json`, profile]));
 
 function endpointRequest(msg, pathname = '/mcp') {
   return new Request(`https://aibox.im${pathname}`, { method: 'POST', body: JSON.stringify(msg) });
@@ -121,16 +106,32 @@ test('both routes use the local catalog for app, provider and platform guidance'
   const query = { section: 'guidance', platform: 'windows', appId: 'chatbox', provider: 'openai' };
   const windows = await onRequest({ request: endpointRequest(call(query)), env: { ASSETS: assets } });
   const zed = await onCanonicalRequest({ request: endpointRequest(call({ ...query, appId: 'zed' }), '/.well-known/mcp'), env: { ASSETS: assets } });
-  const mac = await onRequest({ request: endpointRequest(call({ ...query, platform: 'macos', lang: 'zh' })), env: { ASSETS: assets } });
+  const macQuery = { ...query, appId: 'aider', platform: 'macos' };
+  const mac = await onRequest({ request: endpointRequest(call({ ...macQuery, lang: 'zh' })), env: { ASSETS: assets } });
+  const macEn = await onCanonicalRequest({ request: endpointRequest(call(macQuery), '/.well-known/mcp'), env: { ASSETS: assets } });
   const chatboxText = text(await windows.json());
   const zedText = text(await zed.json());
   const macText = text(await mac.json());
-  assert.match(chatboxText, /Chatbox.*openai.*Windows.*\nDesktop wizard configuration is available/);
-  assert.match(chatboxText, /confirm.*test message/);
+  assert.match(chatboxText, /Chatbox.*openai.*Windows.*\nConfigure the provider manually/);
+  assert.match(chatboxText, /released AiBOX v0\.1\.21/);
+  assert.match(chatboxText, /test message/);
   assert.match(zedText, /Zed.*openai.*Windows.*\nConfigure the provider manually/);
   assert.match(zedText, /https:\/\/aibox\.im\/en\/apps\/zed\//);
-  assert.match(macText, /macOS.*\n请按应用教程在本机手动配置/);
-  assert.match(macText, /https:\/\/aibox\.im\/zh\/apps\/chatbox\//);
+  assert.match(macText, /Aider.*macOS.*\n如果你的 AiBOX 版本提供辅助配置向导.*手动配置/);
+  assert.match(macText, /已发布的 AiBOX v0\.1\.21/);
+  assert.match(macText, /https:\/\/aibox\.im\/zh\/apps\/aider\//);
+  assert.match(text(await macEn.json()), /If your AiBOX version offers the setup wizard.*configure it manually/);
+});
+
+test('both HTTP handlers apply the versioned configuration fixtures', async () => {
+  for (const [path, handler] of [['/mcp', onRequest], ['/.well-known/mcp', onCanonicalRequest]]) {
+    for (const { expected, ...args } of fixture.cases) {
+      const response = await handler({ request: endpointRequest(call({ section: 'guidance', ...args }), path), env: { ASSETS: assets } });
+      const res = await response.json();
+      if (expected === 'unavailable') assert.equal(res.error?.code, -32602);
+      else assert.deepEqual(res.result?._meta?.['aibox.im/config-capability'], { version: fixture.version, capability: expected });
+    }
+  }
 });
 
 test('unknown catalog app, provider and unavailable snapshots receive explicit errors', async () => {

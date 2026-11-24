@@ -1,4 +1,5 @@
 // Read-only MCP JSON-RPC logic shared by both HTTP routes.
+import { configCapability, CONFIG_CAPABILITY_VERSION, CONFIG_PLATFORMS, type ConfigPlatform } from './config-capability-v1.ts';
 export interface JsonRpcResponse {
   jsonrpc: '2.0';
   id: string | number | null;
@@ -13,14 +14,11 @@ const PROTOCOL_FALLBACK = '2025-03-26';
 const SITE = 'https://aibox.im';
 const TOOL = 'get_aibox_info';
 const SECTIONS = ['product', 'download', 'apps', 'guidance'] as const;
-const PLATFORMS = ['windows', 'macos'] as const;
-type Platform = typeof PLATFORMS[number];
+const PLATFORMS = CONFIG_PLATFORMS;
+type Platform = ConfigPlatform;
 const LANGUAGES = ['en', 'zh'] as const;
 type Language = typeof LANGUAGES[number];
 const REGISTRY_ID = /^[a-z0-9][a-z0-9_-]{0,63}$/;
-
-// Desktop single-app wizard routes enabled as of v0.1.21 (src/config/providers.ts).
-const WIZARD_PROVIDERS = new Set(['openrouter', 'anthropic', 'openai']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -59,15 +57,7 @@ function informationText(section: typeof SECTIONS[number], lang: Language, platf
   return `${overview}\n${downloadText(lang)}\nhttps://github.com/imAiBOX/aibox-app`;
 }
 
-function guidanceText(profile: Record<string, unknown>, provider: Record<string, unknown>, appId: string, providerId: string, platform: Platform, lang: Language): string {
-  const template = isRecord(provider.configWrite) ? provider.configWrite : undefined;
-  const target = template?.file ?? provider.configTarget;
-  const canUseWizard = WIZARD_PROVIDERS.has(providerId)
-    && provider.authType === 'api-key'
-    && provider.configWritable === true
-    && Array.isArray(template?.fields) && template.fields.length > 0
-    && typeof target === 'string' && target.length > 0
-    && (platform === 'windows' || !/^~[\\/]AppData[\\/]/i.test(target));
+function guidanceText(profile: Record<string, unknown>, appId: string, providerId: string, platform: Platform, lang: Language, canUseWizard: boolean): string {
   const app = typeof profile.name === 'string' ? profile.name : appId;
   const version = typeof profile.version === 'string' ? ` (${profile.version})` : '';
   const os = platform === 'windows' ? 'Windows' : 'macOS';
@@ -76,14 +66,14 @@ function guidanceText(profile: Record<string, unknown>, provider: Record<string,
 
   if (lang === 'zh') {
     const setup = canUseWizard
-      ? '桌面向导可辅助配置。请在 AiBOX 中检查并确认配置，再到应用中发送一条测试消息。'
+      ? '如果你的 AiBOX 版本提供辅助配置向导，并且向导支持这个应用和服务商，请在本机检查并确认；否则请按应用教程手动配置。完成后在应用中测试连接或发送一条测试消息。'
       : '请按应用教程在本机手动配置。完成后在应用中测试连接或发送一条测试消息。';
-    return `${app}${version} · ${providerId} · ${os}\n${setup}\n这是根据应用目录提供的只读指引，未核实你的 AiBOX 版本或本机配置。请在本机输入所需凭据并确认操作。\n教程：${guide}\n目录依据：${source}`;
+    return `${app}${version} · ${providerId} · ${os}\n${setup}\n这份只读指引依据应用目录和新版配置规则，不代表已发布的 AiBOX v0.1.21 的行为，也未核实你的 AiBOX 版本或本机配置。请在本机输入所需凭据并确认操作。\n教程：${guide}\n目录依据：${source}`;
   }
   const setup = canUseWizard
-    ? 'Desktop wizard configuration is available. Review and confirm the setup in AiBOX, then send a test message in the app.'
+    ? 'If your AiBOX version offers the setup wizard for this app and provider, review and confirm the setup there; otherwise, use the app guide to configure it manually. Then test the connection or send a test message in the app.'
     : 'Configure the provider manually on your device using the app guide. Then test the connection or send a test message in the app.';
-  return `${app}${version} · ${providerId} · ${os}\n${setup}\nThis read-only guidance comes from the catalog; it does not verify your AiBOX version or local setup. Enter any credentials and confirm changes on your own device.\nGuide: ${guide}\nCatalog source: ${source}`;
+  return `${app}${version} · ${providerId} · ${os}\n${setup}\nThis read-only guidance follows the catalog and newer setup rules, not the behavior of the released AiBOX v0.1.21. It does not verify your AiBOX version or local setup. Enter any credentials and confirm changes on your own device.\nGuide: ${guide}\nCatalog source: ${source}`;
 }
 
 /** Dispatch one JSON-RPC message. Returns null for notifications. */
@@ -163,7 +153,11 @@ export async function handleRpc(msg: unknown, readAppProfile?: ReadAppProfile): 
   if (!hasAppPackage) return error(-32602, 'No app package listed for this platform');
   const providerInfo = Object.hasOwn(profile.modelProviders, provider) ? profile.modelProviders[provider] : undefined;
   if (!isRecord(providerInfo)) return error(-32602, 'Provider is not listed for this app');
-  return textResult(guidanceText(profile, providerInfo, appId, provider, platform, lang));
+  const capability = configCapability(profile, appId, provider, platform);
+  return result({
+    content: [{ type: 'text', text: guidanceText(profile, appId, provider, platform, lang, capability === 'assisted') }],
+    _meta: { 'aibox.im/config-capability': { version: CONFIG_CAPABILITY_VERSION, capability } },
+  });
 }
 
 export async function handleBody(body: string, readAppProfile?: ReadAppProfile): Promise<JsonRpcResponse | null> {
