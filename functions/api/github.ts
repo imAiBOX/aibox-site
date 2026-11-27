@@ -9,8 +9,10 @@
 // `[...path]` wildcard, so `/api/github/<path>` is a 404 — the desktop app used that form
 // for a while and therefore never actually reached this proxy.
 //
-// Robustness: this function must never throw (an unhandled exception surfaces as
-// Cloudflare's bare "error code: 502" page). Every path returns a JSON body.
+// Robustness: this function must never throw, and must never answer with status
+// 502/504 — Cloudflare Pages overwrites a Function's own 502/504 responses with its
+// bare "error code: 502" edge page (measured 2026-11-27). Every failure path
+// returns a JSON body with status 503 instead.
 // The decision rules live in `_lib/github-proxy.ts` so they can be unit-tested offline.
 
 import {
@@ -99,7 +101,7 @@ export const onRequest: PagesFunction = async ({ request }) => {
       decision = decideProxyResponse({ upstreamOk, upstreamStatus, upstreamBody, cached });
       console.log('[px] decision', decision.status, decision.cacheState);
     } catch (e) {
-      // Network error / timeout → stale copy if we have one, otherwise a JSON 502.
+      // Network error / timeout → stale copy if we have one, otherwise JSON 503.
       decision = decideProxyResponse({
         upstreamOk: false,
         upstreamStatus: 0,
@@ -117,10 +119,11 @@ export const onRequest: PagesFunction = async ({ request }) => {
     });
   } catch (e) {
     console.error('[px] FATAL', String(e).slice(0, 300));
-    // Last resort: never let the function throw (Cloudflare would answer with a bare
-    // "error code: 502" page that says nothing about what went wrong).
+    // Last resort: never let the function throw (an unhandled exception surfaces as
+    // Cloudflare's bare error page), and never return 502/504 ourselves — Cloudflare
+    // Pages replaces a Function's own 502/504 with its bare "error code: 502" page.
     return new Response(JSON.stringify({ ok: false, error: String(e).slice(0, 120) }), {
-      status: 502,
+      status: 503,
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
     });
   }

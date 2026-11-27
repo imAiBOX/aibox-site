@@ -8,9 +8,11 @@
 //   1. The route is **query-param only** (`?path=`). Cloudflare Pages file names cannot
 //      express a `[...path]` wildcard, so the path form `/api/github/<path>` is a 404.
 //      The desktop app used the path form for months → the proxy was never actually used.
-//   2. The function must **never** throw. An unhandled exception inside a Pages Function
-//      surfaces as Cloudflare's bare "error code: 502" page (not our JSON), which told
-//      nobody anything. Every failure path returns a JSON body instead.
+//   2. The function must **never** throw, and must **never return status 502 or 504**:
+//      Cloudflare Pages replaces a Function's own 502/504 responses with its bare
+//      "error code: 502/504" edge page (measured 2026-11-27 — every other status,
+//      including 500/501/503/507, passes through untouched). Upstream failures
+//      therefore answer 503 + a JSON body instead.
 
 export const GITHUB_UPSTREAM = 'https://api.github.com/';
 export const PROXY_CACHE_SECONDS = 1800; // 30 min — release metadata rarely changes faster
@@ -69,7 +71,9 @@ export type ProxyInput = {
  * Decide what to answer.
  * - upstream ok → 200 + upstream body (fresh)
  * - upstream failed but we have a cached copy → serve the stale copy (same status as cached)
- * - upstream failed and no cached copy → 502 + a JSON body that says why
+ * - upstream failed and no cached copy → 503 + a JSON body that says why
+ *   (503, not 502: Cloudflare Pages overwrites a Function's 502/504 with its own
+ *    bare edge-error page — see file header)
  */
 export function decideProxyResponse(input: ProxyInput): ProxyDecision {
   if (input.upstreamOk) {
@@ -82,7 +86,9 @@ export function decideProxyResponse(input: ProxyInput): ProxyDecision {
     input.networkError !== undefined
       ? { ok: false, error: input.networkError.slice(0, 120) }
       : { ok: false, upstream: input.upstreamStatus };
-  return { status: 502, body: JSON.stringify(detail), cacheState: 'none' };
+  // 503 (Service Unavailable): semantically correct for an upstream outage and
+  // NOT one of the two statuses Cloudflare Pages hijacks (502/504).
+  return { status: 503, body: JSON.stringify(detail), cacheState: 'none' };
 }
 
 /** Response headers for a decision (cache state is visible to the caller). */

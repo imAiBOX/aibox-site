@@ -36,6 +36,6 @@ test('canonical key serves fresh, refreshes expired, and bounds stale fallback',
   assert.equal(calls, 3);
   now = refreshed + 86400 * 1000;
   const expired = await req(url);
-  assert.equal(expired.status, 502);
+  assert.equal(expired.status, 503); // 502 would be hijacked by CF Pages
   assert.deepEqual(await expired.json(), { ok: false, upstream: 503 });
 });

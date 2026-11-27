@@ -48,14 +48,14 @@ test('an upstream failure falls back to the cached copy', () => {
   assert.equal(d.cacheState, 'stale');
 });
 
-test('an upstream failure without a cache answers JSON (never a bare CF error page)', () => {
+test('an upstream failure without a cache answers 503 JSON (502/504 are hijacked by CF Pages)', () => {
   const d = decideProxyResponse({ upstreamOk: false, upstreamStatus: 502 });
-  assert.equal(d.status, 502);
+  assert.equal(d.status, 503); // NOT 502: Cloudflare overwrites a Function's 502/504
   assert.equal(d.cacheState, 'none');
   assert.deepEqual(JSON.parse(d.body), { ok: false, upstream: 502 });
 
   const netErr = decideProxyResponse({ upstreamOk: false, upstreamStatus: 0, networkError: 'timeout' });
-  assert.equal(netErr.status, 502);
+  assert.equal(netErr.status, 503);
   assert.deepEqual(JSON.parse(netErr.body), { ok: false, error: 'timeout' });
 });
 
