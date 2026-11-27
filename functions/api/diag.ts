@@ -14,7 +14,7 @@ export const onRequest: PagesFunction = async ({ request }) => {
   const url = new URL(request.url);
   const kase = url.searchParams.get('case') ?? 'zen';
   // Fixed targets only (no user-controlled URL — not an SSRF springboard).
-  const targets: Record<string, { url: string; headers: Record<string, string>; replicate?: boolean }> = {
+  const targets: Record<string, { url: string; headers: Record<string, string>; replicate?: boolean; fullTail?: boolean }> = {
     zen: { url: 'https://api.github.com/zen', headers: { 'User-Agent': 'aibox-site-diag', Accept: 'text/plain' } },
     // Same headers github.ts sends, tiny endpoint — isolates the headers factor.
     'zen-via-proxy-headers': {
@@ -30,6 +30,13 @@ export const onRequest: PagesFunction = async ({ request }) => {
     'proxy-latest': {
       url: 'https://api.github.com/repos/imAiBOX/aibox-app/releases/latest',
       headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'aibox-site-build', 'X-GitHub-Api-Version': '2022-11-28' },
+    },
+    // Full replica of github.ts's cache-miss tail: decide + a 502 JSON response.
+    full: {
+      url: 'https://api.github.com/repos/imAiBOX/aibox-app/releases/tags/definitely-not-a-tag-xyz',
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'aibox-site-build', 'X-GitHub-Api-Version': '2022-11-28' },
+      replicate: true,
+      fullTail: true,
     },
     // Replica of github.ts's cache-key + readCache stage (never throws there).
     readcache: {
@@ -74,6 +81,17 @@ export const onRequest: PagesFunction = async ({ request }) => {
       }
     } catch (e) {
       steps.push({ step: `fetch+read(${kase})`, ms: Date.now() - tFetch0, detail: `ERROR ${String(e).slice(0, 200)}` });
+    }
+
+    // --- replicate github.ts stage C: decide + respond with a 502 JSON ---
+    if (target.fullTail) {
+      const tC = Date.now();
+      const decisionBody = JSON.stringify({ ok: false, upstream: 403 });
+      steps.push({ step: 'C.decide', ms: Date.now() - tC, detail: `status=502 bytes=${decisionBody.length}` });
+      return new Response(decisionBody, {
+        status: 502,
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'X-Aibox-Cache': 'none', Cache-Control: 'no-store' },
+      });
     }
 
     const tCache0 = Date.now();
