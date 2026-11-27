@@ -90,7 +90,7 @@ export const onRequest: PagesFunction = async ({ request }) => {
       steps.push({ step: 'C.decide', ms: Date.now() - tC, detail: `status=502 bytes=${decisionBody.length}` });
       return new Response(decisionBody, {
         status: 502,
-        headers: { 'Content-Type': 'application/json; charset=utf-8', 'X-Aibox-Cache': 'none', Cache-Control: 'no-store' },
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'X-Aibox-Cache': 'none', 'Cache-Control': 'no-store' },
       });
     }
 
