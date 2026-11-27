@@ -57,12 +57,14 @@ async function writeCache(request: Request, decision: ProxyDecision): Promise<vo
 }
 
 export const onRequest: PagesFunction = async ({ request }) => {
+  console.log('[px] enter', request.method, request.url.slice(0, 160));
   if (request.method !== 'GET') {
     return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'GET' } });
   }
 
   try {
     const resolved = resolveProxyPath(request.url);
+    console.log('[px] resolved', resolved.ok ? resolved.rel : resolved.reason);
     if (!resolved.ok) {
       return new Response(JSON.stringify({ ok: false, error: resolved.reason }), {
         status: 403,
@@ -73,6 +75,7 @@ export const onRequest: PagesFunction = async ({ request }) => {
     // Canonical key: equivalent query encodings/order map to one cache entry.
     const cacheKey = new Request(`https://aibox.im/api/github?path=${encodeURIComponent(resolved.rel)}`, { method: 'GET' });
     const cached = await readCache(cacheKey);
+    console.log('[px] readCache', cached ? `status=${cached.status} fresh=${cached.fresh}` : 'miss');
 
     let decision: ProxyDecision;
     if (cached?.fresh) {
@@ -80,6 +83,7 @@ export const onRequest: PagesFunction = async ({ request }) => {
       return new Response(decision.body, { status: decision.status, headers: proxyResponseHeaders(decision.cacheState) });
     }
     try {
+      console.log('[px] fetch start', resolved.rel);
       const upstream = await fetch(GITHUB_UPSTREAM + resolved.rel, {
         headers: {
           Accept: 'application/vnd.github+json',
@@ -91,7 +95,9 @@ export const onRequest: PagesFunction = async ({ request }) => {
       const upstreamOk = upstream.ok;
       const upstreamStatus = upstream.status;
       const upstreamBody = upstreamOk ? await upstream.text() : undefined;
+      console.log('[px] fetch done', upstreamStatus, upstreamOk ? `bytes=${upstreamBody?.length}` : 'body-unread');
       decision = decideProxyResponse({ upstreamOk, upstreamStatus, upstreamBody, cached });
+      console.log('[px] decision', decision.status, decision.cacheState);
     } catch (e) {
       // Network error / timeout → stale copy if we have one, otherwise a JSON 502.
       decision = decideProxyResponse({
@@ -104,11 +110,13 @@ export const onRequest: PagesFunction = async ({ request }) => {
 
     await writeCache(cacheKey, decision);
 
+    console.log('[px] respond', decision.status, decision.cacheState, `bodyBytes=${decision.body.length}`);
     return new Response(decision.body, {
       status: decision.status,
       headers: proxyResponseHeaders(decision.cacheState),
     });
   } catch (e) {
+    console.error('[px] FATAL', String(e).slice(0, 300));
     // Last resort: never let the function throw (Cloudflare would answer with a bare
     // "error code: 502" page that says nothing about what went wrong).
     return new Response(JSON.stringify({ ok: false, error: String(e).slice(0, 120) }), {
