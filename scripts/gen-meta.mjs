@@ -66,6 +66,12 @@ async function fetchJsonText(rel) {
  * registryVersion 却是 26 apps），raw 短暂失败时回退过去会写出陈旧目录，
  * 连带 site 的 AI 文档总数断言（check-routes）跟着红。
  * "最新"判据：registryVersion 为主（日期+序号，逐次递增），相同时退回 apps 数量。
+ *
+ * **字节忠实红线（2026-11-27，真机验收 REGISTRY_MISMATCH 根因）**：必须原样写出
+ * 胜出源的**原文**，绝不能 `JSON.stringify` 重序列化——安装器 S2 交叉核对按**字节**
+ * 比较四源，重序列化会把美化格式压成压缩格式 → 国内网络（raw/api 不可达、只剩
+ * jsdelivr + aibox.im 两源）必然字节不一致 → 首启即 REGISTRY_MISMATCH。
+ * 本函数只决定"用哪份"，不改内容。
  */
 async function fetchIndexText() {
   const one = async (url) => {
@@ -81,29 +87,33 @@ async function fetchIndexText() {
     }
   };
   const results = await Promise.all(SOURCES.map((f) => one(f('index.json'))));
-  const docs = results.filter((t) => {
-    if (!t) return false;
+  const docs = [];
+  for (const t of results) {
+    if (!t) continue;
     try {
-      JSON.parse(t);
-      return true;
+      docs.push({ text: t, doc: JSON.parse(t) });
     } catch {
-      return false;
+      // 非法 JSON — skipped（与旧逻辑一致）
     }
-  });
+  }
   if (!docs.length) return null;
-  const parsed = docs.map((t) => JSON.parse(t));
   const newer = (a, b) => {
     const av = String(a.registryVersion || '');
     const bv = String(b.registryVersion || '');
     if (bv !== av) return bv > av ? b : a;
     return (b.apps?.length ?? 0) > (a.apps?.length ?? 0) ? b : a;
   };
-  const best = parsed.reduce(newer);
-  const versions = new Set(parsed.map((d) => `${d.registryVersion || '?'}/${d.apps?.length ?? 0}`));
-  if (versions.size > 1) {
-    console.warn(`[gen-meta] warn: sources disagree (${[...versions].join(' vs ')}) — using ${best.registryVersion}/${best.apps?.length}`);
+  let bestI = 0;
+  for (let i = 1; i < docs.length; i++) {
+    // newer(acc, cur)：平局返回 acc → 保持“靠前源优先”，与旧 reduce 语义一致
+    if (newer(docs[bestI].doc, docs[i].doc) === docs[i].doc) bestI = i;
   }
-  return JSON.stringify(best);
+  const best = docs[bestI];
+  const versions = new Set(docs.map((d) => `${d.doc.registryVersion || '?'}/${d.doc.apps?.length ?? 0}`));
+  if (versions.size > 1) {
+    console.warn(`[gen-meta] warn: sources disagree (${[...versions].join(' vs ')}) — using ${best.doc.registryVersion}/${best.doc.apps?.length}`);
+  }
+  return best.text;
 }
 
 if (!existsSync('dist')) {
