@@ -1,9 +1,6 @@
 # Cloudflare Pages project config (direct upload mode).
-# Legacy stats KV binding retained for reads/inventory only; the endpoint no
-# longer reads or writes it. Remove only after separate namespace retirement review.
+# KV retired 2026-11-27 (launch-readiness task 7): the stats namespace and its
+# keys were purged; stats/dl counting has been disabled since v0.1.22. Do not
+# re-add a kv_namespaces binding unless a live consumer exists.
 name = "aibox-site"
 pages_build_output_dir = "dist"
-
-[[kv_namespaces]]
-binding = "stats"
-id = "04ca07e634b941df89a0b9c6c5543a38"
