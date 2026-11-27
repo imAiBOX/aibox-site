@@ -10,24 +10,42 @@
 // Safety: the target is a fixed constant (no user-controlled URL — not an
 // SSRF springboard), it is read-only, and it returns no secrets.
 
-export const onRequest: PagesFunction = async () => {
+export const onRequest: PagesFunction = async ({ request }) => {
+  const url = new URL(request.url);
+  const kase = url.searchParams.get('case') ?? 'zen';
+  // Fixed targets only (no user-controlled URL — not an SSRF springboard).
+  const targets: Record<string, { url: string; headers: Record<string, string> }> = {
+    zen: { url: 'https://api.github.com/zen', headers: { 'User-Agent': 'aibox-site-diag', Accept: 'text/plain' } },
+    // Same headers github.ts sends, tiny endpoint — isolates the headers factor.
+    'zen-via-proxy-headers': {
+      url: 'https://api.github.com/zen',
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'aibox-site-build', 'X-GitHub-Api-Version': '2022-11-28' },
+    },
+    // Exact URL + headers of the failing cache-miss path (nonexistent tag → 404).
+    'proxy-tags': {
+      url: 'https://api.github.com/repos/imAiBOX/aibox-app/releases/tags/definitely-not-a-tag-xyz',
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'aibox-site-build', 'X-GitHub-Api-Version': '2022-11-28' },
+    },
+    // Real releases/latest with proxy headers (may hit GitHub rate limit → 403).
+    'proxy-latest': {
+      url: 'https://api.github.com/repos/imAiBOX/aibox-app/releases/latest',
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'aibox-site-build', 'X-GitHub-Api-Version': '2022-11-28' },
+    },
+  };
+  const target = targets[kase] ?? targets.zen;
   const steps: Array<{ step: string; ms: number; detail?: string }> = [];
   const t0 = Date.now();
   try {
     const tFetch0 = Date.now();
-    let upstreamStatus = 0;
-    let bodyBytes = 0;
     try {
-      const res = await fetch('https://api.github.com/zen', {
-        headers: { 'User-Agent': 'aibox-site-diag', Accept: 'text/plain' },
+      const res = await fetch(target.url, {
+        headers: target.headers,
         signal: AbortSignal.timeout(6000),
       });
-      upstreamStatus = res.status;
       const text = await res.text();
-      bodyBytes = text.length;
-      steps.push({ step: 'fetch+read', ms: Date.now() - tFetch0, detail: `status=${upstreamStatus} bytes=${bodyBytes}` });
+      steps.push({ step: `fetch+read(${kase})`, ms: Date.now() - tFetch0, detail: `status=${res.status} bytes=${text.length}` });
     } catch (e) {
-      steps.push({ step: 'fetch+read', ms: Date.now() - tFetch0, detail: `ERROR ${String(e).slice(0, 200)}` });
+      steps.push({ step: `fetch+read(${kase})`, ms: Date.now() - tFetch0, detail: `ERROR ${String(e).slice(0, 200)}` });
     }
 
     const tCache0 = Date.now();
