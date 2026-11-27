@@ -28,9 +28,13 @@ export const METRICS = Object.freeze([
   { key: 'kv-writes', label: 'KV writes/day', limit: 1_000, threshold: 700 },
 ]);
 
-/** Aggregate kvOperations groups: actionType 'read' -> reads, anything else -> writes (conservative). */
+/**
+ * Aggregate kvOperations groups: actionType 'read' -> reads, anything else -> writes (conservative).
+ * An empty array is a successful query with zero operations (real 0 usage);
+ * only a missing/non-array field means the metric is unavailable (null).
+ */
 export function kvCounts(groups) {
-  if (!Array.isArray(groups) || groups.length === 0) return { reads: null, writes: null };
+  if (!Array.isArray(groups)) return { reads: null, writes: null };
   let reads = 0;
   let writes = 0;
   for (const g of groups) {
@@ -46,7 +50,8 @@ export function kvCounts(groups) {
 }
 
 function sumRequests(groups) {
-  if (!Array.isArray(groups) || groups.length === 0) return null;
+  // Empty array = successful query with zero requests (real 0), not missing data.
+  if (!Array.isArray(groups)) return null;
   let total = 0;
   for (const g of groups) {
     const n = g?.sum?.requests;

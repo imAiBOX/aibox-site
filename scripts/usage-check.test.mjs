@@ -87,6 +87,12 @@ test('kvCounts splits read vs everything else', () => {
   assert.equal(writes, 5); // write + delete both count as writes (conservative)
 });
 
+test('kvCounts: empty array is zero usage, missing field is no data', () => {
+  assert.deepEqual(kvCounts([]), { reads: 0, writes: 0 });
+  assert.deepEqual(kvCounts(undefined), { reads: null, writes: null });
+  assert.deepEqual(kvCounts(null), { reads: null, writes: null });
+});
+
 test('kvCounts does not turn malformed traffic groups into zero usage', () => {
   for (const group of [
     { dimensions: { actionType: 'write' }, sum: {} },
@@ -97,7 +103,7 @@ test('kvCounts does not turn malformed traffic groups into zero usage', () => {
   }
 });
 
-test('fetchUsageWithFallback sends separate bounded GraphQL windows and preserves missing data', async () => {
+test('fetchUsageWithFallback sends separate bounded GraphQL windows; empty groups are zero, absent fields are null', async () => {
   const calls = [];
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (_url, options) => {
@@ -120,6 +126,24 @@ test('fetchUsageWithFallback sends separate bounded GraphQL windows and preserve
     ]);
     assert.equal(calls.every(({ query }) => query.includes('datetime_lt: $until')), true);
     assert.equal(calls.every(({ query }) => !query.includes('r2')), true);
+    // Successful query with empty groups = real zero usage, not missing data.
+    assert.deepEqual(result.yesterday.usage, { 'workers-requests': 0, 'kv-reads': 0, 'kv-writes': 0 });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('fetchUsageWithFallback: absent metric fields stay null (zone fallback has no KV)', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: true, async json() {
+    return { data: { viewer: { accounts: [{}] } } };
+  } });
+  try {
+    const result = await fetchUsageWithFallback({
+      token: 'test-token',
+      accountId: 'account',
+      now: new Date('2026-11-15T23:00:00Z'),
+    });
     assert.deepEqual(result.yesterday.usage, { 'workers-requests': null, 'kv-reads': null, 'kv-writes': null });
   } finally {
     globalThis.fetch = originalFetch;
