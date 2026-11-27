@@ -1,19 +1,19 @@
 {
-  "tag": "v0.1.22",
-  "publishedAt": "2026-11-24T08:01:59Z",
-  "htmlUrl": "https://github.com/imAiBOX/aibox-app/releases/tag/v0.1.22",
+  "tag": "v0.1.23",
+  "publishedAt": "2026-11-27T10:52:34Z",
+  "htmlUrl": "https://github.com/imAiBOX/aibox-app/releases/tag/v0.1.23",
   "assets": [
     {
-      "name": "AiBOX-v0.1.22-windows-x64.exe",
-      "size": 18768384,
-      "url": "https://github.com/imAiBOX/aibox-app/releases/download/v0.1.22/AiBOX-v0.1.22-windows-x64.exe",
-      "sha256": "df6f9da41d91152a0641e049850abf512105941d6bcefcd244d8cdfdcbc80ab9"
+      "name": "AiBOX-v0.1.23-windows-x64.exe",
+      "size": 18760192,
+      "url": "https://github.com/imAiBOX/aibox-app/releases/download/v0.1.23/AiBOX-v0.1.23-windows-x64.exe",
+      "sha256": "d25bff2a56b8ef5b2a0dfbe6e0b78702f77da27795f839b4216ba4c3a8bbcbb9"
     },
     {
-      "name": "AiBOX-v0.1.22-macos-universal.dmg",
-      "size": 15228493,
-      "url": "https://github.com/imAiBOX/aibox-app/releases/download/v0.1.22/AiBOX-v0.1.22-macos-universal.dmg",
-      "sha256": "432688d3faa861bc1fb01a6dd4dd837ed2cee0591507d69317ec66feba43598a"
+      "name": "AiBOX-v0.1.23-macos-universal.dmg",
+      "size": 15218069,
+      "url": "https://github.com/imAiBOX/aibox-app/releases/download/v0.1.23/AiBOX-v0.1.23-macos-universal.dmg",
+      "sha256": "fee7efe7bb97ac2e79e33997647eab5e216b54ba6d25dd503d2e0ef429aca232"
     }
   ]
 }
