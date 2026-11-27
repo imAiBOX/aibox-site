@@ -94,6 +94,16 @@ export const onRequest: PagesFunction = async ({ request }) => {
       });
     }
 
+    // --- status-code probe: which Response statuses does CF Pages replace? ---
+    const wantStatus = url.searchParams.get('status');
+    if (wantStatus) {
+      const st = Number(wantStatus);
+      return new Response(JSON.stringify({ ok: true, returnedStatus: st }), {
+        status: st,
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+      });
+    }
+
     const tCache0 = Date.now();
     let cacheDetail = 'ok';
     try {
